@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:thesis_application_motion_detection/pages/home_page.dart';
+import 'package:thesis_application_motion_detection/pages/activity_detection.dart';
+import 'package:thesis_application_motion_detection/pages/setting_page.dart';
+
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -20,9 +26,10 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
   static const List<Widget> _widgetOptions = <Widget>[
     HomePage(),
-    ChartPage(),
+    ActivityDetectionPage(),
     SettingPage(),
   ];
 
@@ -49,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
-            label: 'Chart',
+            label: 'Activity Detection',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
@@ -60,39 +67,6 @@ class _MainScreenState extends State<MainScreen> {
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
       ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home Screen Content'),
-    );
-  }
-}
-
-class ChartPage extends StatelessWidget {
-  const ChartPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Chart Screen Content'),
-    );
-  }
-}
-
-class SettingPage extends StatelessWidget {
-  const SettingPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Setting Screen Content'),
     );
   }
 }
