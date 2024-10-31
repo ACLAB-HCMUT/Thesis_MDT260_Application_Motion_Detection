@@ -5,7 +5,7 @@ import 'package:thesis_application_motion_detection/pages/activity_detection.dar
 import 'package:thesis_application_motion_detection/pages/setting_page.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -14,12 +14,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MainScreen(),
+      title: 'Motion Detection with XIAO SENSE',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MainScreen(),
     );
   }
 }
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -43,6 +49,8 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xff37A8A8),
+        foregroundColor: Colors.white,
         title: const Text('Hello, USER!'),
       ),
       body: Center(
@@ -64,7 +72,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
+        selectedItemColor: Colors.blue,
+        backgroundColor: Color(0xffD9D9D9),
         onTap: _onItemTapped,
       ),
     );
