@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   lottie: ^1.2.1
+  flutter_blue_plus: ^1.33.5
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -61,3 +62,6 @@ flutter:
   assets:
     - assets/animations/running_animation.json
     - assets/animations/walking_animation.json
+    - assets/animations/gostair_animation.json
+    - assets/animations/break_animation.json
+    - assets/background.png

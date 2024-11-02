@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:thesis_application_motion_detection/pages/home_page.dart';
 import 'package:thesis_application_motion_detection/pages/activity_detection.dart';
 import 'package:thesis_application_motion_detection/pages/setting_page.dart';
@@ -18,7 +18,83 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MainScreen(),
+      home: const BLECheckPage(),
+    );
+  }
+}
+
+class BLECheckPage extends StatefulWidget {
+  const BLECheckPage({super.key});
+
+  @override
+  _BLECheckPageState createState() => _BLECheckPageState();
+}
+
+class _BLECheckPageState extends State<BLECheckPage> {
+  bool isBLEConnected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkBLEConnection();
+  }
+
+  void checkBLEConnection() async {
+    var connectedDevices = await FlutterBluePlus.connectedDevices;
+
+    setState(() {
+      isBLEConnected = true;
+      // isBLEConnected = connectedDevices.isNotEmpty; // Kiểm tra nếu có thiết bị kết nối
+    });
+
+    if (isBLEConnected) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/background.png',
+              width: 250,
+              height: 250,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Track your Active Lifestyle",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (!isBLEConnected)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Color(0xFFA7E8FC),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  "Please connect Bluetooth",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -49,7 +125,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff37A8A8),
+        backgroundColor: const Color(0xff37A8A8),
         foregroundColor: Colors.white,
         title: const Text('Hello, USER!'),
       ),
@@ -73,7 +149,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
-        backgroundColor: Color(0xffD9D9D9),
+        backgroundColor: const Color(0xffD9D9D9),
         onTap: _onItemTapped,
       ),
     );
