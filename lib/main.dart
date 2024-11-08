@@ -9,6 +9,7 @@ import 'screens/live_detection_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/app_localization_provider.dart';
 
+
 void main() {
   runApp(
     MultiProvider(
