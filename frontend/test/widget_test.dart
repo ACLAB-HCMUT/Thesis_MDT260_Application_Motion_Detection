@@ -8,12 +8,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:thesis_application_motion_detection/main.dart';
+import 'package:flutter_motion_detection_app/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MotionDetectionApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
