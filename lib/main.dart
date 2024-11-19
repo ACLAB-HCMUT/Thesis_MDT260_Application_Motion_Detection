@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/settings_screen.dart';
@@ -24,6 +23,8 @@ void main() {
 }
 
 class MotionDetectionApp extends StatelessWidget {
+  const MotionDetectionApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
@@ -56,7 +57,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const LiveDetectionScreen(),
     const SettingsScreen(),
     NotificationsScreen(),
-    UserProfileScreen(),
+    const UserProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -78,22 +79,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.directions_run,
-                color: _selectedIndex == 4 ? Colors.blue : Colors.grey),
+                color: _selectedIndex == 1 ? Colors.blue : Colors.grey),
             label: 'Live Detection',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings,
-                color: _selectedIndex == 1 ? Colors.blue : Colors.grey),
+                color: _selectedIndex == 2 ? Colors.blue : Colors.grey),
             label: 'Cài đặt',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications,
-                color: _selectedIndex == 2 ? Colors.blue : Colors.grey),
+                color: _selectedIndex == 3 ? Colors.blue : Colors.grey),
             label: 'Thông báo',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person,
-                color: _selectedIndex == 3 ? Colors.blue : Colors.grey),
+                color: _selectedIndex == 4? Colors.blue : Colors.grey),
             label: 'Hồ sơ',
           ),
         ],
