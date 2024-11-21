@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
-import '../screens/dashboard_screen.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class DeviceListTile extends StatelessWidget {
-  final Map<String, String> device;
+  final BluetoothDevice device;
+  final VoidCallback onTap;
 
-  const DeviceListTile({required this.device});
+  const DeviceListTile({
+    super.key,
+    required this.device,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.bluetooth),
-      title: Text(device['name'] ?? 'Unknown Device'),
-      subtitle: Text(device['mac'] ?? 'No Address'),
-      trailing: IconButton(
-        icon: Icon(Icons.link),
-        onPressed: () {
-          // Logic to connect to the device
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DashboardScreen()),
-          );
-        },
-      ),
+      title: Text(
+          device.platformName.isNotEmpty ? device.platformName : "Thiết bị không xác định"),
+      subtitle: Text(device.remoteId.toString()),
+      trailing: const Icon(Icons.bluetooth),
+      onTap: onTap,
     );
   }
 }
