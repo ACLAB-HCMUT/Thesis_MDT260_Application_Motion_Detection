@@ -1,3 +1,4 @@
+#For FRONTEND
 # Flutter auto-generated files (Linux)
 frontend/linux/flutter/generated_plugin_registrant.cc
 frontend/linux/flutter/generated_plugin_registrant.h
@@ -55,3 +56,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+
+# For BACKEND
+node_modules/
+.DS_Store
