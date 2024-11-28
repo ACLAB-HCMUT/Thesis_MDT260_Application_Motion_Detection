@@ -3,7 +3,6 @@
 frontend/linux/flutter/generated_plugin_registrant.cc
 frontend/linux/flutter/generated_plugin_registrant.h
 frontend/linux/flutter/generated_plugins.cmake
-
 # Flutter auto-generated files (macOS)
 frontend/macos/Flutter/GeneratedPluginRegistrant.swift
 
@@ -56,7 +55,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-
+frontend/build
 # For BACKEND
 node_modules/
 .DS_Store

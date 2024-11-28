@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'bluetooth_screen.dart';
 import 'dart:async';
@@ -13,12 +12,11 @@ class LiveDetectionScreen extends StatefulWidget {
 
 class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   BluetoothDevice? _connectedDevice;
-  String _currentActivity = 'Unknown';
+  String _currentActivity = 'Stand still'; // Mặc định là Stand still
   StreamSubscription<List<int>>? _notificationSubscription;
-  List<FlSpot> _dataPoints = [];
-  double _currentX = 0.0;
   bool _isConnecting = false;
   String _connectionStatus = 'Disconnected';
+  Timer? _standStillTimer; // Timer để kiểm tra trạng thái Stand still
 
   @override
   void initState() {
@@ -30,6 +28,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   void dispose() {
     _notificationSubscription?.cancel();
     _disconnectDevice();
+    _standStillTimer?.cancel(); // Hủy timer khi thoát
     super.dispose();
   }
 
@@ -107,9 +106,11 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
         _connectionStatus = 'Discovering services...';
       });
 
-      List<BluetoothService> services = await _connectedDevice!.discoverServices();
+      List<BluetoothService> services =
+          await _connectedDevice!.discoverServices();
       for (BluetoothService service in services) {
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
+        for (BluetoothCharacteristic characteristic
+            in service.characteristics) {
           if (characteristic.properties.notify) {
             await characteristic.setNotifyValue(true);
             print('Subscribed to characteristic: ${characteristic.uuid}');
@@ -149,8 +150,8 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       print('Activity updated to: $_currentActivity');
     }
 
-    double intensity = _parseIntensityFromCharacteristic(value);
-    _addDataPoint(intensity);
+    // Reset timer mỗi khi nhận được dữ liệu mới
+    _resetStandStillTimer();
   }
 
   String _parseActivityFromCharacteristic(List<int> value) {
@@ -163,35 +164,19 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       case 'goingstair':
         return 'Going Stairs';
       default:
-        return 'Unknown';
+        return 'Stand still'; // Nếu không nhận được hành động nào thì mặc định là Stand still
     }
   }
 
-  double _parseIntensityFromCharacteristic(List<int> value) {
-    try {
-      String data = String.fromCharCodes(value).trim();
-      return double.parse(data);
-    } catch (e) {
-      print('Error parsing intensity: $e');
-      return 0.0;
-    }
-  }
-
-  void _addDataPoint(double y) {
-    setState(() {
-      _dataPoints.add(FlSpot(_currentX, y));
-      _currentX += 1.0;
-
-      // Keep only the latest 10 data points
-      if (_dataPoints.length > 10) {
-        _dataPoints.removeAt(0);
-        _dataPoints = _dataPoints
-            .map((spot) => FlSpot(spot.x - 1.0, spot.y))
-            .toList();
-        _currentX -= 1.0;
-      }
+  // Hàm reset timer mỗi khi nhận được dữ liệu mới
+  void _resetStandStillTimer() {
+    _standStillTimer?.cancel(); // Hủy timer cũ
+    _standStillTimer = Timer(const Duration(seconds: 5), () {
+      setState(() {
+        _currentActivity =
+            'Stand still'; // Sau 5s không nhận được dữ liệu sẽ tự động hiển thị Stand still
+      });
     });
-    print('Added data point: (${_currentX.toStringAsFixed(1)}, $y)');
   }
 
   @override
@@ -203,7 +188,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Connection Status
             Text(
@@ -218,90 +203,77 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Container hiển thị hành động (Chỉ có viền màu xanh, không có nền)
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Activity Indicators
-                  const Text(
-                    'Live Motion Detection',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildActivityColumn(Icons.directions_walk, 'Walking'),
-                      _buildActivityColumn(Icons.directions_run, 'Running'),
-                      _buildActivityColumn(Icons.stairs, 'Going Stairs'),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Tiêu đề Live Motion Detection nằm ngoài container
+                    const Text(
+                      'Live Motion Detection',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(
+                        height: 20), // Khoảng cách giữa tiêu đề và container
 
-                  // Real-Time Chart
-                  const Text(
-                    'Acceleration Intensity Over Time',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: LineChart(
-                      LineChartData(
-                        gridData: const FlGridData(show: true),
-                        titlesData: FlTitlesData(
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 22,
-                              getTitlesWidget: (value, meta) {
-                                if (value % 2 == 0) {
-                                  return Text('${value.toInt()}s');
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 28,
-                              getTitlesWidget: (value, meta) {
-                                return Text('${value.toInt()}');
-                              },
-                            ),
-                          ),
+                    // Container chứa hoạt động
+                    Container(
+                      width: double.infinity,
+                      height: 300, // Kéo dài chiều cao của container
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.blueAccent, // Màu viền xanh
+                          width: 2,
                         ),
-                        borderData: FlBorderData(
-                          show: true,
-                          border: Border.all(
-                            color: const Color(0xff37434d),
-                            width: 1,
-                          ),
-                        ),
-                        minX: _dataPoints.isNotEmpty ? _dataPoints.first.x : 0,
-                        maxX: _dataPoints.isNotEmpty ? _dataPoints.last.x : 10,
-                        minY: 0,
-                        maxY: 10,
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: _dataPoints,
-                            isCurved: true,
-                            color: Colors.blue,
-                            barWidth: 4,
-                            isStrokeCapRound: true,
-                            dotData: const FlDotData(show: false),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: Colors.blue.withOpacity(0.3),
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(255, 211, 216, 219)
+                                .withOpacity(0.2), // Màu shadow nhẹ
+                            spreadRadius: 2,
+                            blurRadius: 10,
+                            offset: const Offset(
+                                0, 4), // Shadow nằm phía dưới container
                           ),
                         ],
                       ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Display current activity
+                          Text(
+                            _currentActivity,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Icon representing the current activity
+                          _currentActivity == 'Walking'
+                              ? const Icon(Icons.directions_walk,
+                                  size: 100, color: Colors.blueAccent)
+                              : _currentActivity == 'Running'
+                                  ? const Icon(Icons.directions_run,
+                                      size: 100, color: Colors.blueAccent)
+                                  : _currentActivity == 'Going Stairs'
+                                      ? const Icon(Icons.stairs,
+                                          size: 100, color: Colors.blueAccent)
+                                      : const Icon(Icons.accessibility_new,
+                                          size: 100, color: Colors.blueAccent),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+
             const SizedBox(height: 20),
 
             // Start Live Button
@@ -323,34 +295,14 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Start Live'),
+                    : const Text(
+                        'Start Live',
+                      ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildActivityColumn(IconData icon, String activity) {
-    bool isActive = _currentActivity.toLowerCase() ==
-        activity.toLowerCase().replaceAll(' ', '');
-    return Column(
-      children: [
-        Icon(
-          icon,
-          size: 40,
-          color: isActive ? Colors.blue : Colors.grey,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          isActive ? activity : 'Idle',
-          style: TextStyle(
-            fontSize: 16,
-            color: isActive ? Colors.blue : Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 }

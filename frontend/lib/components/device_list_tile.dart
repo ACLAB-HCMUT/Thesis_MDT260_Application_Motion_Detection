@@ -17,7 +17,7 @@ class DeviceListTile extends StatelessWidget {
       title: Text(
           device.platformName.isNotEmpty ? device.platformName : "Thiết bị không xác định"),
       subtitle: Text(device.remoteId.toString()),
-      trailing: const Icon(Icons.bluetooth),
+      trailing: const Text("Kết nối"),
       onTap: onTap,
     );
   }

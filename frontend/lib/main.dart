@@ -17,7 +17,7 @@ void main() {
         ChangeNotifierProvider(
             create: (_) => AppLocalizationProvider()), // Add this line
       ],
-      child: MotionDetectionApp(),
+      child: const MotionDetectionApp(),
     ),
   );
 }
