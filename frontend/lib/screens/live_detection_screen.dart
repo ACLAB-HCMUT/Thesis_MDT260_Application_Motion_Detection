@@ -17,6 +17,8 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   bool _isConnecting = false;
   String _connectionStatus = 'Disconnected';
   Timer? _standStillTimer; // Timer để kiểm tra trạng thái Stand still
+  bool _isLive =
+      false; // Biến trạng thái để kiểm tra liệu đang nhận dữ liệu hay không
 
   @override
   void initState() {
@@ -27,7 +29,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   @override
   void dispose() {
     _notificationSubscription?.cancel();
-    _disconnectDevice();
     _standStillTimer?.cancel(); // Hủy timer khi thoát
     super.dispose();
   }
@@ -119,7 +120,8 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
             await _notificationSubscription?.cancel();
 
             // Listen to the characteristic's value stream
-            _notificationSubscription = characteristic.value.listen((value) {
+            _notificationSubscription =
+                characteristic.lastValueStream.listen((value) {
               if (mounted) {
                 _handleReceivedData(value);
               }
@@ -150,6 +152,13 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       print('Activity updated to: $_currentActivity');
     }
 
+    // Đảm bảo khi nhận dữ liệu, _isLive được set là true
+    if (!_isLive) {
+      setState(() {
+        _isLive = true; // Đánh dấu là đang nhận dữ liệu
+      });
+    }
+
     // Reset timer mỗi khi nhận được dữ liệu mới
     _resetStandStillTimer();
   }
@@ -175,8 +184,19 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       setState(() {
         _currentActivity =
             'Stand still'; // Sau 5s không nhận được dữ liệu sẽ tự động hiển thị Stand still
+        _isLive =
+            false; // Nếu sau 5s không nhận dữ liệu thì dừng live detection
       });
     });
+  }
+
+  void _stopLiveDetection() {
+    setState(() {
+      _isLive = false;
+      _currentActivity = 'Stand still'; // Set lại hoạt động khi dừng
+    });
+    _notificationSubscription?.cancel();
+    print('Live detection stopped');
   }
 
   @override
@@ -184,66 +204,52 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Live Detection'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bluetooth_disabled),
+            onPressed: _disconnectDevice,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Connection Status
-            Text(
-              'Status: $_connectionStatus',
-              style: TextStyle(
-                fontSize: 16,
-                color: _connectionStatus.contains('Error') ||
-                        _connectionStatus.contains('No')
-                    ? Colors.red
-                    : Colors.green,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Container hiển thị hành động (Chỉ có viền màu xanh, không có nền)
             Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Tiêu đề Live Motion Detection nằm ngoài container
                     const Text(
                       'Live Motion Detection',
                       style:
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(
-                        height: 20), // Khoảng cách giữa tiêu đề và container
-
-                    // Container chứa hoạt động
+                    const SizedBox(height: 20),
                     Container(
                       width: double.infinity,
-                      height: 300, // Kéo dài chiều cao của container
+                      height: 300,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.blueAccent, // Màu viền xanh
+                          color: Colors.blueAccent,
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: const Color.fromARGB(255, 211, 216, 219)
-                                .withOpacity(0.2), // Màu shadow nhẹ
+                                .withOpacity(0.2),
                             spreadRadius: 2,
                             blurRadius: 10,
-                            offset: const Offset(
-                                0, 4), // Shadow nằm phía dưới container
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Display current activity
                           Text(
                             _currentActivity,
                             style: const TextStyle(
@@ -253,8 +259,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-
-                          // Icon representing the current activity
                           _currentActivity == 'Walking'
                               ? const Icon(Icons.directions_walk,
                                   size: 100, color: Colors.blueAccent)
@@ -273,31 +277,33 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Start Live Button
             Center(
-              child: ElevatedButton(
-                onPressed: _isConnecting ? null : _startLiveDetection,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
-                child: _isConnecting
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                          strokeWidth: 2,
+              child: ClipOval(
+                child: Material(
+                  color: _isLive
+                      ? Colors.red
+                      : Colors.green, // Màu thay đổi khi nhận dữ liệu
+                  child: InkWell(
+                    onTap: _isLive
+                        ? _stopLiveDetection
+                        : _startLiveDetection, // Đổi chức năng dựa trên trạng thái
+                    child: SizedBox(
+                      width: 70,
+                      height: 70,
+                      child: Center(
+                        child: Icon(
+                          _isLive
+                              ? Icons.stop
+                              : Icons
+                                  .play_arrow, // Biểu tượng thay đổi khi nhận dữ liệu
+                          color: Colors.white,
+                          size: 40,
                         ),
-                      )
-                    : const Text(
-                        'Start Live',
                       ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

@@ -16,6 +16,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   BluetoothDevice? _connectedDevice;
   bool _isScanning = false;
   final List<BluetoothDevice> _availableDevices = [];
+  BluetoothDevice? _connectingDevice; // Track the device being connected
 
   @override
   void initState() {
@@ -98,11 +99,22 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   }
 
   void _connectToDevice(BluetoothDevice device) async {
+    setState(() {
+      _connectingDevice = device; // Mark this device as connecting
+    });
+
     try {
       await _bluetoothService.connectToDevice(device);
+      setState(() {
+        _connectedDevice = device;
+        _connectingDevice = null; // Device connected, stop showing connecting state
+      });
       Navigator.pop(context, device);  // Trả về thiết bị sau khi kết nối thành công
       print('Đã kết nối với thiết bị: ${device.platformName}');
     } catch (e) {
+      setState(() {
+        _connectingDevice = null; // Stop showing connecting state in case of error
+      });
       print('Không thể kết nối với thiết bị: $e');
     }
   }
@@ -150,6 +162,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                     final device = _availableDevices[index];
                     return DeviceListTile(
                       device: device,
+                      isConnecting: _connectingDevice == device, // Show "Đang kết nối" for this device
                       onTap: () => _connectToDevice(device),
                     );
                   },
