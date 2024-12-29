@@ -10,7 +10,17 @@ const mockNotifications = [
   {'time': '10:15 AM', 'action': 'Phát hiện chuyển động - Đi cầu thang'},
 ];
 
-const mockUser = {
-  'name': 'Nguyễn Văn A',
-  'email': 'nguyenvana@gmail.com',
-};
+List<Map<String, dynamic>> mockUsers= [
+  {
+    'id': 1,
+    'name': 'Nguyễn Văn A',
+    'email': 'admin@gmail.com',
+    'password': '123456',
+  },
+  {
+    'id': 2,
+    'name': 'Nguyễn Văn A',
+    'email': 'nguyenvana@gmail.com',
+    'password': '123456',
+  }
+];

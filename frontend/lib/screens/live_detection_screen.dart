@@ -14,8 +14,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   BluetoothDevice? _connectedDevice;
   String _currentActivity = 'Stand still'; // Mặc định là Stand still
   StreamSubscription<List<int>>? _notificationSubscription;
-  bool _isConnecting = false;
-  String _connectionStatus = 'Disconnected';
   Timer? _standStillTimer; // Timer để kiểm tra trạng thái Stand still
   bool _isLive =
       false; // Biến trạng thái để kiểm tra liệu đang nhận dữ liệu hay không
@@ -46,32 +44,22 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
 
   Future<void> _checkBluetoothConnection() async {
     try {
-      setState(() {
-        _isConnecting = true;
-        _connectionStatus = 'Checking connected devices...';
-      });
+      setState(() {});
 
       List<BluetoothDevice> devices = await FlutterBluePlus.connectedDevices;
       if (devices.isNotEmpty) {
         setState(() {
           _connectedDevice = devices.first;
-          _connectionStatus = 'Connected to ${_connectedDevice!.name}';
         });
         _setupNotifications();
       } else {
-        setState(() {
-          _connectionStatus = 'No devices connected';
-        });
+        setState(() {});
       }
     } catch (e) {
       print('Error retrieving connected devices: $e');
-      setState(() {
-        _connectionStatus = 'Error retrieving devices';
-      });
+      setState(() {});
     } finally {
-      setState(() {
-        _isConnecting = false;
-      });
+      setState(() {});
     }
   }
 
@@ -85,13 +73,10 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       if (selectedDevice != null && selectedDevice is BluetoothDevice) {
         setState(() {
           _connectedDevice = selectedDevice;
-          _connectionStatus = 'Connected to ${_connectedDevice!.name}';
         });
         _setupNotifications();
       } else {
-        setState(() {
-          _connectionStatus = 'No device selected';
-        });
+        setState(() {});
       }
     } else {
       // If already connected, ensure notifications are set up
@@ -103,9 +88,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
     if (_connectedDevice == null) return;
 
     try {
-      setState(() {
-        _connectionStatus = 'Discovering services...';
-      });
+      setState(() {});
 
       List<BluetoothService> services =
           await _connectedDevice!.discoverServices();
@@ -126,17 +109,13 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                 _handleReceivedData(value);
               }
             });
-            setState(() {
-              _connectionStatus = 'Listening for data...';
-            });
+            setState(() {});
           }
         }
       }
     } catch (e) {
       print('Error setting up notifications: $e');
-      setState(() {
-        _connectionStatus = 'Error setting up notifications';
-      });
+      setState(() {});
     }
   }
 
@@ -149,7 +128,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       setState(() {
         _currentActivity = newActivity;
       });
-      print('Activity updated to: $_currentActivity');
     }
 
     // Đảm bảo khi nhận dữ liệu, _isLive được set là true

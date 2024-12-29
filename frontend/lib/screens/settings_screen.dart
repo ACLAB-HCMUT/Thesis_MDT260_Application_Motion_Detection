@@ -126,8 +126,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           width: 30,
                           height: 30,
                         ),
-                        SizedBox(width: 10),
-                        Text('Tiếng Việt'),
+                        const SizedBox(width: 10),
+                        const Text('Tiếng Việt'),
                       ],
                     ),
                   ),
@@ -144,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                     final device = snapshot.data!.first;
                     subtitle =
-                        'Connected to ${device.name}'; // Show connected device's name
+                        'Connected to ${device.platformName}'; // Show connected device's name
                   }
                 }
 
