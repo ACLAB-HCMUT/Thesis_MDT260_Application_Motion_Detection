@@ -1,26 +1,41 @@
+/* eslint-disable no-console */
 import express from 'express'
-import { mapOrder } from '~/utils/sorts.js'
+import { CONNECT_DB, DISCONNECT_DB } from '~/config/mongodb'
+import exitHook from 'async-exit-hook'
+import { env } from '~/config/environment'
 
-const app = express()
+//function to start server
+const START_SERVER = () => {
+  const app = express()
 
-const hostname = 'localhost'
-const port = 8017
+  app.get('/', async (req, res) => {
+    res.end('<h1>Hello World!</h1><hr>')
+  })
 
-app.get('/', (req, res) => {
-  // Test Absolute import mapOrder
-  console.log(mapOrder(
-    [ { id: 'id-1', name: 'One' },
-      { id: 'id-2', name: 'Two' },
-      { id: 'id-3', name: 'Three' },
-      { id: 'id-4', name: 'Four' },
-      { id: 'id-5', name: 'Five' } ],
-    ['id-5', 'id-4', 'id-2', 'id-3', 'id-1'],
-    'id'
-  ))
-  res.end('<h1>Hello World!</h1><hr>')
-})
+  app.listen(env.APP_PORT, env.APP_HOST, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Server running at http://${env.APP_HOST}:${env.APP_PORT}/`)
+  })
 
-app.listen(port, hostname, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server running at http://${hostname}:${port}/`)
-})
+  exitHook(() => {
+    console.log('Server is shutting down...')
+    DISCONNECT_DB()
+    console.log('Database disconnected')
+  })
+}
+
+//function to connect to database before starting server
+(async () => {
+  try {
+    console.log('Connecting to database...')
+    await CONNECT_DB()
+    console.log('Database connected')
+    START_SERVER()
+  }
+  catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error)
+    process.exit(0)
+  }
+})()
+
