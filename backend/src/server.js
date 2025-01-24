@@ -3,14 +3,20 @@ import express from 'express'
 import { CONNECT_DB, DISCONNECT_DB } from '~/config/mongodb'
 import exitHook from 'async-exit-hook'
 import { env } from '~/config/environment'
+import { APIs_V1 } from '~/routes/v1'
+import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 
 //function to start server
 const START_SERVER = () => {
   const app = express()
 
-  app.get('/', async (req, res) => {
-    res.end('<h1>Hello World!</h1><hr>')
-  })
+  //parse request body to json format
+  app.use(express.json())
+
+  app.use('/v1', APIs_V1)
+
+  //error handling middleware
+  app.use(errorHandlingMiddleware)
 
   app.listen(env.APP_PORT, env.APP_HOST, () => {
     // eslint-disable-next-line no-console
