@@ -5,7 +5,6 @@ import { ObjectId } from 'mongodb'
 
 const USER_COLLECTION_NAME = 'users'
 const USER_SCHEMA = Joi.object({
-  user_id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   username: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
@@ -49,9 +48,31 @@ const findOneById = async (id) => {
   }
 }
 
+const findOneByUsername = async (username) => {
+  try {
+    return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
+      username
+    })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const findOneByEmail = async (email) => {
+  try {
+    return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
+      email
+    })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const USER_MODEL = {
   USER_COLLECTION_NAME,
   USER_SCHEMA,
   createNewUser,
-  findOneById
+  findOneById,
+  findOneByUsername,
+  findOneByEmail
 }

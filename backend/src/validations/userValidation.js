@@ -2,29 +2,33 @@ import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
 import ApiError from '~/utils/ApiError'
 
-const createNew = async (req, res, next) => {
-  const correctCondition = Joi.object({
-    title: Joi.string().required().min(3).max(50).trim().strict().messages({
-      'any.required': 'Title is required',
-      'string.base': 'Title should be a type of text',
-      'string.empty': 'Title should not be empty',
-      'string.min': 'Title should have a minimum length of 3',
-      'string.max': 'Title should have a maximum length of 50',
-      'string.trim': 'Title should not have leading or trailing spaces'
-    }),
-    description: Joi.string().required().min(3).max(50).trim().strict().messages({
-      'any.required': 'Description is required',
-      'string.base': 'Description should be a type of text',
-      'string.empty': 'Description should not be empty',
-      'string.min': 'Description should have a minimum length of 3',
-      'string.max': 'Description should have a maximum length of 50',
-      'string.trim': 'Description should not have leading or trailing spaces'
-    })
-  })
+const userRegister = Joi.object({
+  username: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+  first_name: Joi.string().required(),
+  last_name: Joi.string().required(),
+  date_of_birth: Joi.date().required(),
+  gender: Joi.string().required(),
+  weight: Joi.number().required(),
+  height: Joi.number().required(),
+  emergency_contact: Joi.object({
+    name: Joi.string().required(),
+    relationship: Joi.string().required(),
+    contact_number: Joi.string().required(),
+    email: Joi.string().email().required()
+  }).optional()
+})
 
+const userLogin = Joi.object({
+  emailOrUsername: Joi.string().required(),
+  password: Joi.string().required()
+})
+
+const createNew = async (req, res, next) => {
   try {
     //Set abortEarly to false to display all errors
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    await userRegister.validateAsync(req.body, { abortEarly: false })
     //If no error, proceed to the next middleware
     next()
   } catch (error) {
@@ -33,6 +37,16 @@ const createNew = async (req, res, next) => {
 
 }
 
+const login = async (req, res, next) => {
+  try {
+    await userLogin.validateAsync(req.body, { abortEarly: false })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+  }
+}
+
 export const userValidation = {
-  createNew
+  createNew,
+  login
 }
