@@ -16,7 +16,7 @@ const mongoClientInstance = new MongoClient(env.MONGODB_URI, {
 export const CONNECT_DB = async () => {
   await mongoClientInstance.connect()
 
-  databaseInstance = mongoClientInstance.db(env.MONGODB_DB_NAME)
+  databaseInstance = mongoClientInstance.db(env.DATABASE_NAME)
 }
 
 // Disconnect from the database

@@ -7,6 +7,8 @@ const ACTIVITY_SCHEMA = Joi.object({
   daily_summary_id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   date: Joi.date().required(),
   activity_type: Joi.string().required(),
+  start_time: Joi.date().iso().required(),
+  end_time: Joi.date().iso().required(),
   metrics: Joi.object({
     steps: Joi.number().required(),
     distance: Joi.number().required(),

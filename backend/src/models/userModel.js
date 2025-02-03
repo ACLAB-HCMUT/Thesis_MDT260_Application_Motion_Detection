@@ -1,5 +1,7 @@
 import Joi from 'joi'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
+import { GET_DB } from '~/config/mongodb'
+import { ObjectId } from 'mongodb'
 
 const USER_COLLECTION_NAME = 'users'
 const USER_SCHEMA = Joi.object({
@@ -18,7 +20,38 @@ const USER_SCHEMA = Joi.object({
     relationship: Joi.string().required(),
     contact_number: Joi.string().required(),
     email: Joi.string().email().required()
-  }).optional()
+  }).optional(),
+  createdAt: Joi.date().timestamp('javascript').default,
+  updatedAt: Joi.date().timestamp('javascript').default,
+  _destroy: Joi.boolean().default(false)
 })
 
-export { USER_COLLECTION_NAME, USER_SCHEMA }
+const validateUser = async (data) => {
+  return await USER_SCHEMA.validateAsync(data, { abortEarly: false })
+}
+
+const createNewUser = async (data) => {
+  try {
+    const validatedData = await validateUser(data)
+    return await GET_DB().collection(USER_COLLECTION_NAME).insertOne(validatedData)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const findOneById = async (id) => {
+  try {
+    return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
+      _id: new ObjectId(String(id))
+    })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+export const USER_MODEL = {
+  USER_COLLECTION_NAME,
+  USER_SCHEMA,
+  createNewUser,
+  findOneById
+}
