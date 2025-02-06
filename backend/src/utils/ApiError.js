@@ -4,7 +4,7 @@ class ApiError extends Error {
 
     this.name = 'ApiError'
 
-    this.statusCode
+    this.statusCode = statusCode
 
     Error.captureStackTrace(this, this.constructor)
   }

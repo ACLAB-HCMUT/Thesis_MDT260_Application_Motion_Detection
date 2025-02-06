@@ -12,7 +12,6 @@ const Router = express.Router()
 //   .post(userValidation.createNew, userController.createNew)
 
 
-Router.get('/:email', userController.findOneByEmail)
 Router.post('/login', userValidation.login, parseEmailOrUsername, userController.login)
 Router.post('/register', userValidation.createNew, userController.createNew)
 

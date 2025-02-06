@@ -10,5 +10,8 @@ export const env = {
 
   BUILD_MODE : process.env.BUILD_MODE,
 
+  ACCESSTOKEN_SECRET : process.env.ACCESSTOKEN_SECRET,
+  REFRESHTOKEN_SECRET : process.env.REFRESHTOKEN_SECRET,
+
   AUTHOR : process.env.AUTHOR
 }

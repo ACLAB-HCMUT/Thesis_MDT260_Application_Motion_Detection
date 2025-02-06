@@ -60,9 +60,8 @@ const findOneByUsername = async (username) => {
 
 const findOneByEmail = async (email) => {
   try {
-    return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
-      email
-    })
+    const user = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ email })
+    return user
   } catch (error) {
     throw new Error(error)
   }

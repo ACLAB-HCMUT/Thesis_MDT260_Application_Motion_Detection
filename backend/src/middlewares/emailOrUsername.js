@@ -11,13 +11,11 @@ const parseEmailOrUsername = async (req, res, next) => {
   const { emailOrUsername, email } = req.body
 
   if (email) {
-    console.log('email', email)
     req.body.email = email
     return next()
   }
 
   if (!emailOrUsername) {
-    console.log('username and password are required')
     return next(new ApiError(StatusCodes.BAD_REQUEST, 'Username and password are required'))
   }
 
@@ -25,10 +23,9 @@ const parseEmailOrUsername = async (req, res, next) => {
     req.body.email = emailOrUsername
   } else {
     const username = emailOrUsername
-    const user = await userController.findOneByUsername(username)
+    const user = await userController.findOneByUsername(username, next)
     if (!user) {
-      console.log('Invalid email or password from middleware')
-      return next(new ApiError(StatusCodes.NOT_FOUND, 'Invalid email or password from middleware'))
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'User not found'))
     }
     req.body.email = user.email
   }
