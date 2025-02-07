@@ -13,7 +13,7 @@ To get started with this project, follow the steps below:
 
 ### Installing Node.js
 
-To install Node.jsa on Windows: 
+To install Node.js on Windows: 
 
 1. Download the installer from the [official Node.js website](https://nodejs.org/en/download)
 
@@ -27,7 +27,7 @@ To install Node.jsa on Windows:
 
 ### Installing Yarn
 
-To install Yarn via npm on Windows:
+To install Yarn via `npm` on Windows (`npm` is installed with Node.js automatically):
 
 1. Open a command prompt and run the following command:
 
