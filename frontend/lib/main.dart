@@ -100,17 +100,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings,
                 color: _selectedIndex == 2 ? Colors.blue : Colors.grey),
-            label: 'Cài đặt',
+            label: 'Settings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications,
                 color: _selectedIndex == 3 ? Colors.blue : Colors.grey),
-            label: 'Thông báo',
+            label: 'Notifications',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person,
                 color: _selectedIndex == 4 ? Colors.blue : Colors.grey),
-            label: 'Hồ sơ',
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,

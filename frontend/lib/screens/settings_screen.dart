@@ -108,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Row(
                       children: [
                         Image.asset(
-                          'assets/images/uk_flag.png', // Đảm bảo đường dẫn ảnh đúng
+                          'assets/images/uk_flag.png', 
                           width: 30,
                           height: 30,
                         ),
@@ -122,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Row(
                       children: [
                         Image.asset(
-                          'assets/images/vn_flag.png', // Đảm bảo đường dẫn ảnh đúng
+                          'assets/images/vn_flag.png', 
                           width: 30,
                           height: 30,
                         ),
