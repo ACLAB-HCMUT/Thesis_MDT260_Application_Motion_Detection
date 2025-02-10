@@ -15,18 +15,19 @@ class UserProfileScreen extends StatelessWidget {
         child: Column(
           children: [
             TextField(
-              controller: TextEditingController(text: mockUser['name']),
+              controller: TextEditingController(text: mockUsers[0]['name']),
               decoration: const InputDecoration(labelText: 'Tên'),
             ),
             TextField(
-              controller: TextEditingController(text: mockUser['email']),
+              controller: TextEditingController(text: mockUsers[0]['email']),
               decoration: const InputDecoration(labelText: 'Email'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {},
-              child: const Text('Cập Nhật Thông Tin'),
+              child: const Text('Thay đổi thông tin cá nhân'),
             ),
+
           ],
         ),
       ),

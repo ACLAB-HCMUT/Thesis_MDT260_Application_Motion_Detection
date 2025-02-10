@@ -5,17 +5,18 @@ import 'screens/settings_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/user_profile_screen.dart';
 import 'screens/live_detection_screen.dart';
+import 'screens/homepage_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/signup_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/app_localization_provider.dart';
-
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
-        ChangeNotifierProvider(
-            create: (_) => AppLocalizationProvider()), // Add this line
+        ChangeNotifierProvider(create: (_) => AppLocalizationProvider()),
       ],
       child: const MotionDetectionApp(),
     ),
@@ -28,29 +29,43 @@ class MotionDetectionApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
-    final localeNotifier =
-        Provider.of<AppLocalizationProvider>(context); // Update this line
+    final localeNotifier = Provider.of<AppLocalizationProvider>(context);
 
     return MaterialApp(
       title: 'Motion Detection App',
       theme: themeNotifier.isDarkMode ? ThemeData.dark() : ThemeData.light(),
       locale: localeNotifier.locale,
-      supportedLocales:
-          AppLocalizations.supportedLocales, // Use AppLocalizations
-      localizationsDelegates:
-          AppLocalizations.localizationsDelegates, // Use AppLocalizations
-      home: MainNavigationScreen(),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const MainNavigationScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/main': (context) => const MainNavigationScreen(),
+      },
     );
   }
 }
 
 class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
+
   @override
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
+
+  late Map<String, dynamic> userInfo;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    userInfo = args ?? {};
+  }
 
   static final List<Widget> _widgetOptions = <Widget>[
     const DashboardScreen(),
@@ -85,17 +100,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings,
                 color: _selectedIndex == 2 ? Colors.blue : Colors.grey),
-            label: 'Cài đặt',
+            label: 'Settings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications,
                 color: _selectedIndex == 3 ? Colors.blue : Colors.grey),
-            label: 'Thông báo',
+            label: 'Notifications',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person,
-                color: _selectedIndex == 4? Colors.blue : Colors.grey),
-            label: 'Hồ sơ',
+                color: _selectedIndex == 4 ? Colors.blue : Colors.grey),
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,
