@@ -8,20 +8,20 @@ const USER_SCHEMA = Joi.object({
   username: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  first_name: Joi.string().required(),
-  last_name: Joi.string().required(),
-  date_of_birth: Joi.date().required(),
-  gender: Joi.string().required(),
-  weight: Joi.number().required(),
-  height: Joi.number().required(),
+  first_name: Joi.string().optional().allow(null),
+  last_name: Joi.string().optional().allow(null),
+  date_of_birth: Joi.date().optional().allow(null),
+  gender: Joi.string().optional().allow(null),
+  weight: Joi.number().optional().allow(null),
+  height: Joi.number().optional().allow(null),
   emergency_contact: Joi.object({
-    name: Joi.string().required(),
-    relationship: Joi.string().required(),
-    contact_number: Joi.string().required(),
-    email: Joi.string().email().required()
-  }).optional(),
-  createdAt: Joi.date().timestamp('javascript').default,
-  updatedAt: Joi.date().timestamp('javascript').default,
+    name: Joi.string().optional().allow(null),
+    relationship: Joi.string().optional().allow(null),
+    contact_number: Joi.string().optional().allow(null),
+    email: Joi.string().email().optional().allow(null)
+  }).optional().allow(null),
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().default(() => new Date()),
   _destroy: Joi.boolean().default(false)
 })
 

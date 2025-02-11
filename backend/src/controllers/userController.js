@@ -5,29 +5,43 @@ import ApiError from '~/utils/ApiError'
 import bcrypt from 'bcrypt'
 import jsonwebtoken from 'jsonwebtoken'
 
+
 const createNew = async (req, res, next) => {
   try {
-    const newUser = { ...req.body }
+    const { username, email, password } = req.body
 
-    //check if username and email already exists
-    const usernameExists = await USER_MODEL.findOneByUsername(newUser.username)
-    const emailExists = await USER_MODEL.findOneByEmail(newUser.email)
+    //Check if username and email already exists
+    const usernameExists = await USER_MODEL.findOneByUsername(username)
+    const emailExists = await USER_MODEL.findOneByEmail(email)
     if (usernameExists) {
       return next(new ApiError(StatusCodes.CONFLICT, 'Username already exists'))
     }
     if (emailExists) {
       return next(new ApiError(StatusCodes.CONFLICT, 'Email already exists'))
     }
+
     //Hash password before saving to database
-    const hashedPassword = await bcrypt.hash(newUser.password, 10)
-    newUser.password = hashedPassword
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const newUser = {
+      username,
+      email,
+      password: hashedPassword,
+      first_name: null,
+      last_name: null,
+      date_of_birth: null,
+      gender: null,
+      weight: null,
+      height: null,
+      emergency_contact: null
+    }
 
     const createdUser = await USER_MODEL.createNewUser(newUser)
     const getNewUser = await USER_MODEL.findOneById(createdUser.insertedId)
 
     res.status(StatusCodes.OK).json({
       message: 'User created successfully',
-      getNewUser })
+      user: getNewUser })
   } catch (error) {
     next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
   }
