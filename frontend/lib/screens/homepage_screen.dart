@@ -19,9 +19,9 @@ class HomePage extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF0095FF), // Màu xanh dương
                 Colors.white, // Màu trắng
-                Color.fromARGB(255, 27, 167, 58), // Màu xanh nhạt
+                Color(0xFF0095FF), // Màu xanh dương
+                Color.fromARGB(255, 0, 20, 236), // Màu xanh nhạt
               ],
             ),
           ),
@@ -32,20 +32,22 @@ class HomePage extends StatelessWidget {
             children: <Widget>[
               Column(
                 children: <Widget>[
+                  const SizedBox(
+                      height: 40),
                   Image.asset(
                     "assets/images/logo_BK.png", // Đường dẫn tới logo của bạn
-                    height: 80, // Chiều cao logo
-                    width: 80, // Chiều rộng logo
+                    height: 100, // Chiều cao logo
+                    width: 100, // Chiều rộng logo
                   ),
                   const SizedBox(
                       height: 20), // Khoảng cách giữa logo và chữ "Welcome"
                   Text(
-                    "Welcome Back!",
+                    "Welcome!",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.acme(
                       fontWeight: FontWeight.w700,
                       fontSize: 30,
-                      color: const Color.fromARGB(255, 20, 163, 44),
+                      color: const Color.fromARGB(255, 255, 255, 255),
                     ),
                   ),
                 ],
@@ -92,7 +94,7 @@ class HomePage extends StatelessWidget {
                           ),
                         );
                       },
-                      color: const Color.fromARGB(255, 141, 165, 182),
+                      color: const Color(0xFF0095FF),
                       shape: RoundedRectangleBorder(
                         // side: const BorderSide(color: Colors.black),
                         borderRadius: BorderRadius.circular(50),
@@ -101,13 +103,13 @@ class HomePage extends StatelessWidget {
                         "Login",
                         style: GoogleFonts.acme(
                           fontWeight: FontWeight.w700,
-                          fontSize: 30,
+                          fontSize: 25,
                           color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   // Signup Button with Shadow
                   Container(
                     decoration: BoxDecoration(
@@ -131,7 +133,7 @@ class HomePage extends StatelessWidget {
                           ),
                         );
                       },
-                      color: const Color(0xff0095FF),
+                      color: const Color.fromARGB(255, 0, 20, 236),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
                       ),
@@ -139,7 +141,7 @@ class HomePage extends StatelessWidget {
                         "Sign up",
                         style: GoogleFonts.acme(
                           fontWeight: FontWeight.w700,
-                          fontSize: 30,
+                          fontSize: 25,
                           color: Colors.white,
                         ),
                       ),

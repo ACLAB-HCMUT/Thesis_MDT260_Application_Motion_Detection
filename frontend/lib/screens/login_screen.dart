@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../screens/forgot_password_screen.dart';
 import '../screens/signup_screen.dart';
 import '../services/auth_service.dart';
-import '../models/mock_data.dart';
+// import '../models/mock_data.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
