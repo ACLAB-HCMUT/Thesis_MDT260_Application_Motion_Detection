@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../screens/forgot_password_screen.dart';
 import '../screens/signup_screen.dart';
-import '../models/mock_data.dart';
-
+import '../services/auth_service.dart';
+// import '../models/mock_data.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,43 +18,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+  bool _isPasswordVisible = false;
 
   void _handleLogin() async {
     setState(() {
-      isLoading = true; // Bắt đầu tải
+      isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 2)); // Giả lập thời gian xử lý
-    
-    if (!mounted) return;
-    // Tìm user trong mock data
-    final user = mockUsers.firstWhere(
-      (user) =>
-          user['email'] == emailController.text.trim() &&
-          user['password'] == passwordController.text.trim(),
-      orElse: () => {},
+    final authService = AuthService();
+    final response = await authService.login(
+      emailController.text.trim(),
+      passwordController.text.trim(),
     );
 
     setState(() {
-      isLoading = false; // Kết thúc tải
+      isLoading = false;
     });
 
-    if (user.isNotEmpty) {
-      // Đăng nhập thành công
+    if (response.containsKey("token")) {
       Navigator.pushNamed(
         context,
-        '/main', // Chuyển đến màn hình Dashboard
-        arguments: {
-          "userId": user['id'],
-          "email": user['email'],
-        },
+        '/main',
+        arguments: {"token": response["token"]},
       );
     } else {
-      // Thông báo lỗi nếu đăng nhập thất bại
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Invalid email or password."),
-        ),
+        SnackBar(content: Text(response["error"] ?? "Login failed")),
       );
     }
   }
@@ -109,21 +98,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 40),
-              Column(
-                children: <Widget>[
-                  inputFile(
-                    label: "Email",
-                    icon: Icons.email,
-                    controller: emailController,
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'UserName Or Email',
+                  prefixIcon: Icon(Icons.email, color: Colors.grey),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
                   ),
-                  const SizedBox(height: 20),
-                  inputFile(
-                    label: "Password",
-                    icon: Icons.lock,
-                    controller: passwordController,
-                    obscureText: true,
-                  ),
-                ],
+                ),
               ),
               const SizedBox(height: 40),
               ElevatedButton(
