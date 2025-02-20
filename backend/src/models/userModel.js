@@ -67,11 +67,23 @@ const findOneByEmail = async (email) => {
   }
 }
 
+const updateUser = async (user) => {
+  try {
+    return await GET_DB().collection(USER_COLLECTION_NAME).updateOne(
+      { _id: user._id },
+      { $set: user }
+    )
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const USER_MODEL = {
   USER_COLLECTION_NAME,
   USER_SCHEMA,
   createNewUser,
   findOneById,
   findOneByUsername,
-  findOneByEmail
+  findOneByEmail,
+  updateUser
 }

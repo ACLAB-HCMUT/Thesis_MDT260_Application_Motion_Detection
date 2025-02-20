@@ -106,9 +106,61 @@ const getProfile = async (req, res, next) => {
   }
 }
 
+const editProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id
+    const user = await USER_MODEL.findOneById(userId)
+
+    if (!user) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'User not found'))
+    }
+
+    const { username, email, first_name, last_name, date_of_birth, gender, weight, height } = req.body
+
+    if (!username && !email && !first_name && !last_name && !date_of_birth &&
+        !gender && !weight && !height) {
+      return next(new ApiError(StatusCodes.BAD_REQUEST, 'No changes detected'))
+    }
+
+    if (username !== undefined) {
+      const usernameExists = await USER_MODEL.findOneByUsername(username)
+      if (usernameExists) {
+        return next(new ApiError(StatusCodes.CONFLICT, 'Username already exists'))
+      }
+    }
+
+    if (email !== undefined) {
+      const emailExists = await USER_MODEL.findOneByEmail(email)
+      if (emailExists) {
+        return next(new ApiError(StatusCodes.CONFLICT, 'Email already exists'))
+      }
+    }
+
+    user.username = username
+    user.email = email
+    if (first_name !== undefined) user.first_name = first_name
+    if (last_name !== undefined) user.last_name = last_name
+    if (date_of_birth !== undefined) user.date_of_birth = date_of_birth
+    if (gender !== undefined) user.gender = gender
+    if (weight !== undefined) user.weight = weight
+    if (height !== undefined) user.height = height
+    user.updatedAt = new Date()
+
+    await USER_MODEL.updateUser(user)
+    return res.status(StatusCodes.OK).json({
+      message: 'User profile updated successfully',
+      user: user
+    })
+
+  } catch (error) {
+    next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
+  }
+}
+
 export const userController = {
   createNew,
   findOneByUsername,
   login,
-  getProfile
+  getProfile,
+  editProfile
 }
