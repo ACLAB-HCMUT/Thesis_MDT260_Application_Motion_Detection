@@ -59,6 +59,9 @@ app.*.map.json
 /android/app/release
 
 frontend/build
+frontend/.env
+frontend/devtools_options.yaml
+
 # For BACKEND
 node_modules/
 .DS_Store

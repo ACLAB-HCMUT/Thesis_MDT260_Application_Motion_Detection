@@ -10,8 +10,10 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/app_localization_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(); // Load file .env
   runApp(
     MultiProvider(
       providers: [
@@ -39,7 +41,7 @@ class MotionDetectionApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomePage(),
+        '/': (context) => const MainNavigationScreen(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/main': (context) => const MainNavigationScreen(),
@@ -63,7 +65,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     userInfo = args ?? {};
   }
 
