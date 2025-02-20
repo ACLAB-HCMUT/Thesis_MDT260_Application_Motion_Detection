@@ -88,8 +88,27 @@ const findOneByUsername = async (username, next) => {
   }
 }
 
+const getProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id
+    const user = await USER_MODEL.findOneById(userId)
+    if (!user) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'User not found'))
+    }
+    delete user.password
+    return res.status(StatusCodes.OK).json({
+      message: 'User profile retrieved successfully',
+      user: user
+    })
+  }
+  catch (error) {
+    next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
+  }
+}
+
 export const userController = {
   createNew,
   findOneByUsername,
-  login
+  login,
+  getProfile
 }
