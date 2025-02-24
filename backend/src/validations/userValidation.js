@@ -24,6 +24,13 @@ const userLogin = Joi.object({
   password: Joi.string().required()
 })
 
+const emergency_contact = Joi.object({
+  full_name: Joi.string().optional().allow(null).min(3).max(50).trim().strict(),
+  relationship: Joi.string().optional().allow(null).min(2).max(50).trim().strict(),
+  email: Joi.string().email().optional().allow(null).trim().strict()
+})
+
+
 const createNew = async (req, res, next) => {
   try {
     //Set abortEarly to false to display all errors
@@ -45,7 +52,17 @@ const login = async (req, res, next) => {
   }
 }
 
+const updateEmergencyContact = async (req, res, next) => {
+  try {
+    await emergency_contact.validateAsync(req.body, { abortEarly: false })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+  }
+}
+
 export const userValidation = {
   createNew,
-  login
+  login,
+  updateEmergencyContact
 }

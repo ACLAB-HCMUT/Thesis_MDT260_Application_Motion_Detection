@@ -38,7 +38,7 @@ const createNew = async (req, res, next) => {
     const createdUser = await USER_MODEL.createNewUser(newUser)
     const getNewUser = await USER_MODEL.findOneById(createdUser.insertedId)
 
-    res.status(StatusCodes.OK).json({
+    res.status(StatusCodes.CREATED).json({
       message: 'User created successfully',
       user: getNewUser })
   } catch (error) {
@@ -211,11 +211,43 @@ const updateLoginInfo = async (req, res, next) => {
   }
 }
 
+const updateEmergencyContact = async (req, res, next) => {
+  try {
+    const userId = req.user.id
+    const user = await USER_MODEL.findOneById(userId)
+
+    if (!user) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'User not found'))
+    }
+
+    const { full_name, relationship, email } = req.body
+
+    //Update the emergency contact if they are provided
+    user.emergency_contact = {
+      full_name: full_name !== undefined ? full_name : user.emergency_contact?.full_name,
+      relationship: relationship !== undefined ? relationship : user.emergency_contact?.relationship,
+      email: email !== undefined ? email : user.emergency_contact?.email
+    }
+
+    //Update updatedAt field to current date
+    user.updatedAt = new Date()
+
+    await USER_MODEL.updateUser(user)
+    return res.status(StatusCodes.OK).json({
+      message: 'Emergency contact updated successfully',
+      user: user
+    })
+  } catch (error) {
+    next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
+  }
+}
+
 export const userController = {
   createNew,
   findOneByUsername,
   login,
   getProfile,
   editProfile,
-  updateLoginInfo
+  updateLoginInfo,
+  updateEmergencyContact
 }

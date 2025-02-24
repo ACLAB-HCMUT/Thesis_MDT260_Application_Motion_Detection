@@ -14,9 +14,8 @@ const USER_SCHEMA = Joi.object({
   weight: Joi.number().optional().allow(null),
   height: Joi.number().optional().allow(null),
   emergency_contact: Joi.object({
-    name: Joi.string().optional().allow(null),
+    full_name: Joi.string().optional().allow(null),
     relationship: Joi.string().optional().allow(null),
-    contact_number: Joi.string().optional().allow(null),
     email: Joi.string().email().optional().allow(null)
   }).optional().allow(null),
   createdAt: Joi.date().default(() => new Date()),
