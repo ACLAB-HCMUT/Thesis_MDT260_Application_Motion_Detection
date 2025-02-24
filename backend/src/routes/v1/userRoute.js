@@ -2,17 +2,12 @@ import express from 'express'
 import { userValidation } from '~/validations/userValidation'
 import { userController } from '~/controllers/userController'
 import parseEmailOrUsername from '~/middlewares/emailOrUsername'
+import validateToken from '~/middlewares/validateToken'
+import { profileRoute } from '~/routes/v1/profileRoute'
 
-const Router = express.Router()
+const userRouter = express.Router()
+userRouter.post('/login', userValidation.login, parseEmailOrUsername, userController.login)
+userRouter.post('/register', userValidation.createNew, userController.createNew)
+userRouter.use('/profile', validateToken, profileRoute)
 
-// Router.route('/')
-//   .get((req, res) => {
-//     res.status(StatusCodes.OK).json({ message: 'GET messages!' })
-//   })
-//   .post(userValidation.createNew, userController.createNew)
-
-
-Router.post('/login', userValidation.login, parseEmailOrUsername, userController.login)
-Router.post('/register', userValidation.createNew, userController.createNew)
-
-export const userRoute = Router
+export const userRoute = userRouter

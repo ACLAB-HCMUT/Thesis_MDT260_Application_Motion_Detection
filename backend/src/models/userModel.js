@@ -8,16 +8,14 @@ const USER_SCHEMA = Joi.object({
   username: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  first_name: Joi.string().optional().allow(null),
-  last_name: Joi.string().optional().allow(null),
+  full_name: Joi.string().required(),
   date_of_birth: Joi.date().optional().allow(null),
   gender: Joi.string().optional().allow(null),
   weight: Joi.number().optional().allow(null),
   height: Joi.number().optional().allow(null),
   emergency_contact: Joi.object({
-    name: Joi.string().optional().allow(null),
+    full_name: Joi.string().optional().allow(null),
     relationship: Joi.string().optional().allow(null),
-    contact_number: Joi.string().optional().allow(null),
     email: Joi.string().email().optional().allow(null)
   }).optional().allow(null),
   createdAt: Joi.date().default(() => new Date()),
@@ -67,11 +65,23 @@ const findOneByEmail = async (email) => {
   }
 }
 
+const updateUser = async (user) => {
+  try {
+    return await GET_DB().collection(USER_COLLECTION_NAME).updateOne(
+      { _id: user._id },
+      { $set: user }
+    )
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const USER_MODEL = {
   USER_COLLECTION_NAME,
   USER_SCHEMA,
   createNewUser,
   findOneById,
   findOneByUsername,
-  findOneByEmail
+  findOneByEmail,
+  updateUser
 }
