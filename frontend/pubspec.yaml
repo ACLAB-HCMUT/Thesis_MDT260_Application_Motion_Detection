@@ -42,7 +42,7 @@ dependencies:
   syncfusion_flutter_charts: ^20.4.49
   google_fonts: ^6.2.1
   http: ^1.3.0
-
+  flutter_dotenv: ^5.0.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -81,6 +81,8 @@ flutter:
     - assets/images/BG_1.jpg
     - assets/images/logo_BK.png
      
+
+    - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
