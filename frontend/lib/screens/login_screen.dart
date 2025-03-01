@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../screens/forgot_password_screen.dart';
 import '../screens/signup_screen.dart';
 import '../services/auth_service.dart';
-// import '../models/mock_data.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (response.containsKey("token")) {
-      Navigator.pushNamed(
+      Navigator.pushReplacementNamed(
         context,
         '/main',
         arguments: {"token": response["token"]},
@@ -98,34 +96,29 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 40),
-              TextField(
+              inputField(
+                label: "UserName Or Email",
+                icon: Icons.email,
                 controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'UserName Or Email',
-                  prefixIcon: Icon(Icons.email, color: Colors.grey),
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 20),
-              TextField(
+              inputField(
+                label: "Password",
+                icon: Icons.lock,
                 controller: passwordController,
                 obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock, color: Colors.grey),
-                  border: OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: Colors.grey,
                   ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 40),
@@ -231,11 +224,12 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // Widget cho input text với icon và controller
-Widget inputFile({
+Widget inputField({
   required String label,
   required IconData icon,
   required TextEditingController controller,
   bool obscureText = false,
+  Widget? suffixIcon,
 }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,13 +239,14 @@ Widget inputFile({
         style: GoogleFonts.acme(
           fontWeight: FontWeight.w400,
           fontSize: 15,
-          color: Colors.grey[800],
+          color: const Color.fromARGB(255, 18, 18, 19),
         ),
       ),
       const SizedBox(height: 5),
       TextField(
         controller: controller,
         obscureText: obscureText,
+        cursorColor: Colors.black,
         style: const TextStyle(
           color: Colors.black,
           fontSize: 16,
@@ -266,20 +261,24 @@ Widget inputFile({
             color: Colors.grey,
             fontSize: 14,
           ),
+          suffixIcon: suffixIcon,
           contentPadding: const EdgeInsets.symmetric(
             vertical: 15,
             horizontal: 10,
           ),
+          filled: true,
+          fillColor: Colors.white,
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.grey),
             borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xff0095FF)),
+            borderSide: const BorderSide(color: Color(0xff0095FF), width: 2),
             borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),
+      const SizedBox(height: 10),
     ],
   );
 }

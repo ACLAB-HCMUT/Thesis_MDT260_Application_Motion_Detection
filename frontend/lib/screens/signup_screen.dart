@@ -2,9 +2,62 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_motion_detection_app/screens/login_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/res_service.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+  bool isLoading = false;
+
+  /// Xử lý sự kiện đăng ký
+  void _handleSignup() async {
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final resService = ResService();
+    final response = await resService.registerUser(
+      fullName: fullNameController.text.trim(),
+      username: usernameController.text.trim(),
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.containsKey("error")) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("❌ ${response["error"]}")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("✅ Registration successful! Please login.")),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +67,7 @@ class SignupScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarBrightness:
-              Brightness.light, // Sets status bar content for light background
+          statusBarBrightness: Brightness.light,
         ),
         backgroundColor: Colors.white,
         leading: IconButton(
@@ -47,9 +99,7 @@ class SignupScreen extends StatelessWidget {
                       color: const Color.fromARGB(255, 64, 6, 156),
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   Text(
                     "Create an account, It's free",
                     style: GoogleFonts.acme(
@@ -57,15 +107,16 @@ class SignupScreen extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                       color: Colors.grey[700],
                     ),
-                  )
+                  ),
                 ],
               ),
               Column(
                 children: <Widget>[
-                  inputFile(label: "Username"),
-                  inputFile(label: "Email"),
-                  inputFile(label: "Password", obscureText: true),
-                  inputFile(label: "Confirm Password", obscureText: true),
+                  inputFile(label: "Fullname", controller: fullNameController),
+                  inputFile(label: "Username", controller: usernameController),
+                  inputFile(label: "Email", controller: emailController),
+                  inputFile(label: "Password", controller: passwordController, obscureText: true),
+                  inputFile(label: "Confirm Password", controller: confirmPasswordController, obscureText: true),
                 ],
               ),
               Container(
@@ -80,7 +131,7 @@ class SignupScreen extends StatelessWidget {
                   ),
                 ),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: isLoading ? null : _handleSignup,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 60),
                     backgroundColor: const Color(0xff0095FF),
@@ -88,14 +139,16 @@ class SignupScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(50),
                     ),
                   ),
-                  child: Text(
-                    "Sign up",
-                    style: GoogleFonts.acme(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          "Sign up",
+                          style: GoogleFonts.acme(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
               Row(
@@ -113,8 +166,7 @@ class SignupScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
                       );
                     },
                     child: Text(
@@ -138,9 +190,10 @@ class SignupScreen extends StatelessWidget {
   }
 }
 
-// Widget cho text field với icon và placeholder
+// Widget cho text field
 Widget inputFile({
   required String label,
+  required TextEditingController controller,
   bool obscureText = false,
 }) {
   return Column(
@@ -154,44 +207,24 @@ Widget inputFile({
           color: const Color.fromARGB(255, 18, 18, 19),
         ),
       ),
-      const SizedBox(
-        height: 5,
-      ),
+      const SizedBox(height: 5),
       TextField(
+        controller: controller,
         obscureText: obscureText,
-        style: const TextStyle(
-          color: Colors.black, // Màu chữ khi nhập
-          fontSize: 14,
-        ),
+        style: const TextStyle(color: Colors.black, fontSize: 14),
         decoration: InputDecoration(
-          hintText: "Enter your $label", // Placeholder
-          hintStyle: const TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 10,
-          ),
+          hintText: "Enter your $label",
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
           prefixIcon: Icon(
-            label == "Email"
-                ? Icons.email
-                : label.contains("Password")
-                    ? Icons.lock
-                    : Icons.person,
+            label == "Email" ? Icons.email : label.contains("Password") ? Icons.lock : Icons.person,
             color: Colors.grey,
           ),
-          enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey),
-          ),
-          border: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey),
-          ),
+          enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+          border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
         ),
       ),
-      const SizedBox(
-        height: 10,
-      ),
+      const SizedBox(height: 10),
     ],
   );
 }

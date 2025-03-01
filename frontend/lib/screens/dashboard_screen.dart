@@ -15,6 +15,7 @@ class DashboardScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text("Dashboard"),
           backgroundColor: Colors.black,
+          automaticallyImplyLeading: true, //false to delete icon back
         ),
         backgroundColor: Colors.black,
         body: SingleChildScrollView(
