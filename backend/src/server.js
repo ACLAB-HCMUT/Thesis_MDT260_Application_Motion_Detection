@@ -18,10 +18,15 @@ const START_SERVER = () => {
   //error handling middleware
   app.use(errorHandlingMiddleware)
 
-  app.listen(env.APP_PORT, env.APP_HOST, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Server running at http://${env.APP_HOST}:${env.APP_PORT}/`)
-  })
+  if (env.BUILD_MODE === 'production') {
+    app.listen(env.APP_PORT, env.APP_HOST, () => {
+      console.log(`Server running at http://${env.APP_HOST}:${env.APP_PORT}/`)
+    })
+  } else {
+    app.listen(env.APP_PORT, env.APP_HOST, () => {
+      console.log(`Server running at http://${env.APP_HOST}:${env.APP_PORT}/`)
+    })
+  }
 
   exitHook(() => {
     console.log('Server is shutting down...')
