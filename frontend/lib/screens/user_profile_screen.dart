@@ -65,6 +65,21 @@ class UserProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UpdateLoginInfoScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 81, 156, 78), // Màu nền cho button
+                ),
+                child: const Text('Thông tin người thân'),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
                   // Logic đăng xuất
                 },
                 style: ElevatedButton.styleFrom(

@@ -34,29 +34,31 @@ abstract class AppLocalizations {
     Locale('vi')
   ];
 
-  /// No description provided for @dashboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Dashboard'**
+  /// **'Dashboard' Screen
   String get dashboard;
+  
+  String get hello;
 
-  /// No description provided for @notifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Detected actions:'**
   String get notifications;
 
-  /// No description provided for @settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Settings'**
+   //Dashboard screen
+  String get dart_mode;
+
   String get settings;
 
-  /// No description provided for @language.
-  ///
-  /// In en, this message translates to:
-  /// **'Language'**
   String get language;
+  
+  String get vietnamese;
+
+  String get english;
+
+  String get ble_connect;
+
+  String get no_device_connect;
+
+  String get connected_device;
+  
+  
 
   String? get darkMode => null;
 

@@ -78,14 +78,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.dashboard),
+        title: Text(AppLocalizations.of(context)!.settings),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             ListTile(
-              title: const Text('Chế độ tối'),
+              title: Text(AppLocalizations.of(context)!.dart_mode),
               trailing: Switch(
                 value: themeNotifier.isDarkMode,
                 onChanged: (value) {
@@ -94,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             ListTile(
-              title: const Text('Ngôn ngữ'),
+              title: Text(AppLocalizations.of(context)!.language),
               trailing: DropdownButton<Locale>(
                 value: localeNotifier.locale,
                 onChanged: (Locale? newLocale) {
@@ -113,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           height: 30,
                         ),
                         const SizedBox(width: 10),
-                        const Text('English'),
+                        Text(AppLocalizations.of(context)!.english),
                       ],
                     ),
                   ),
@@ -127,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           height: 30,
                         ),
                         const SizedBox(width: 10),
-                        const Text('Tiếng Việt'),
+                        Text(AppLocalizations.of(context)!.vietnamese),
                       ],
                     ),
                   ),
@@ -138,18 +138,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               future:
                   _connectedDevicesFuture, // Use the updated future for connected devices
               builder: (context, snapshot) {
-                String subtitle = 'No device connected'; // Default text
+                String subtitle = AppLocalizations.of(context)!.no_device_connect; 
 
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                     final device = snapshot.data!.first;
                     subtitle =
-                        'Connected to ${device.platformName}'; // Show connected device's name
+                        AppLocalizations.of(context)!.connected_device +' ${device.platformName}'; // Show connected device's name
                   }
                 }
 
                 return ListTile(
-                  title: const Text('BLE Connection'),
+                  title: Text(AppLocalizations.of(context)!.ble_connect),
                   subtitle: Text(subtitle),
                   trailing: const Icon(Icons.bluetooth),
                   onLongPress: () async {

@@ -151,7 +151,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
       case 'goingstair':
         return 'Going Stairs';
       default:
-        return 'Stand still'; // Nếu không nhận được hành động nào thì mặc định là Stand still
+        return 'Stand still'; 
     }
   }
 
@@ -198,6 +198,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  
                   children: [
                     const Text(
                       'Live Motion Detection',

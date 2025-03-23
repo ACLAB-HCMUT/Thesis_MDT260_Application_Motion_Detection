@@ -74,10 +74,6 @@ class UpdateProfileScreen extends StatelessWidget {
                     value: 'Nữ',
                     child: Text('Nữ'),
                   ),
-                  DropdownMenuItem(
-                    value: 'Khác',
-                    child: Text('Khác'),
-                  ),
                 ],
                 onChanged: (value) {
                   // Xử lý sự thay đổi giới tính ở đây
