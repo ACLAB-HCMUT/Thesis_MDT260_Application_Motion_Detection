@@ -30,8 +30,25 @@ const createNewActivities = async (activities) => {
   }
 }
 
+const getActivitiesByDateRange = async (userId, startDate, endDate) => {
+  try {
+    // Validate the userId and date range
+    await ACTIVITY_SCHEMA.validateAsync({ userId, timestamp: startDate })
+    await ACTIVITY_SCHEMA.validateAsync({ userId, timestamp: endDate })
+
+    // Query the database for activities within the date range
+    return await GET_DB().collection(ACTIVITY_COLLECTION_NAME).find({
+      userId,
+      timestamp: { $gte: new Date(startDate), $lte: new Date(endDate) }
+    }).toArray()
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const ACTIVITY_MODEL = {
   ACTIVITY_COLLECTION_NAME,
   ACTIVITY_SCHEMA,
-  createNewActivities
+  createNewActivities,
+  getActivitiesByDateRange
 }
