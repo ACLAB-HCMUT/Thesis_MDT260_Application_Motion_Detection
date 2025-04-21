@@ -16,10 +16,10 @@ const validateDailySummary = async (data) => {
   return await DAILY_SUMMARY_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
-const createNewDailySummary = async (dailySummary) => {
+const createNewDailySummary = async (dailySummaryData) => {
   try {
     // Validate the daily summary data
-    const validatedDailySummary = await validateDailySummary(dailySummary)
+    const validatedDailySummary = await validateDailySummary(dailySummaryData)
 
     // Insert the validated daily summary into the database
     return await GET_DB().collection(DAILY_SUMMARY_COLLECTION_NAME).insertOne(validatedDailySummary)
@@ -43,10 +43,10 @@ const updateDailySummary = async (userId, date, updateData) => {
   }
 }
 
-const updateOrCreateDailySummary = async (userId, date, activities, totalCalories) => {
+const updateOrCreateDailySummary = async (userId, date, activitiesForDate, totalCalories) => {
   try {
     //Calculate total steps and calories from activities
-    const totalSteps = activities.reduce((sum, activity) => sum + activity.steps, 0)
+    const totalSteps = activitiesForDate.reduce((sum, activity) => sum + activity.steps, 0)
 
     //Prepare the daily summary data
     const dailySummaryData = {

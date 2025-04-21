@@ -1,34 +1,41 @@
 import { DAILY_SUMMARY_MODEL } from '~/models/dailySummaryModel.js'
-import { ACTIVITY_MODEL } from '~/models/activityModel.js'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import calculateCalories from '~/utils/calculateCalories.js'
 
 const updateDailySummaryMiddleware = async (req, res, next) => {
   try {
-    const { userId } = req.user //Extract userId from the request object
-    const { date } = req.body //Extract date from the request body
+    const userId = req.user.id //Extract userId from the request object
 
-    //First, fetch all activities for the user on the specified date
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0) // Set to start of the day
+    const activities = req.activities // Use activities passed from the controller
 
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999) // Set to end of the day
-
-    const activities = await ACTIVITY_MODEL.getActivitiesByDateRange(userId, startOfDay, endOfDay)
-
-    //If no activities are found, return a 200 status with an empty array
-    if (activities.length === 0) {
-      return res.status(StatusCodes.OK).json({ message: 'No activities found for the specified date.', activities: [] })
+    if (!activities || activities.length === 0) {
+      return res.status(StatusCodes.OK).json({ message: 'No activities found to process.', activities: [] })
     }
 
-    //Calculate total calories burned from activities
-    const totalCalories = calculateCalories(activities) //Calculate total calories burned from activities
+    // Group activities by date
+    const activitiesByDate = activities.reduce((grouped, activity) => {
+      const date = new Date(activity.timestamp).toISOString().split('T')[0] // Extract the date (YYYY-MM-DD)
+      if (!grouped[date]) {
+        grouped[date] = []
+      }
+      grouped[date].push(activity)
+      return grouped
+    }, {})
 
-    //Update or create the daily summary for the user
-    await DAILY_SUMMARY_MODEL.updateOrCreateDailySummary(userId, date, activities)
+    // Process each date group
+    for (const [date, activitiesForDate] of Object.entries(activitiesByDate)) {
+      // Calculate total calories burned for the date
+      const totalCalories = activitiesForDate.reduce((sum, activity) => sum + calculateCalories(activity), 0)
 
+      // Update or create the daily summary for the user and date
+      await DAILY_SUMMARY_MODEL.updateOrCreateDailySummary(userId, date, activitiesForDate, totalCalories)
+    }
+    return res.status(StatusCodes.CREATED).json({
+      status: 'success',
+      message: 'Activities submitted and daily summary updated successfully',
+      data: activities
+    })
 
   } catch (error) {
     next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
