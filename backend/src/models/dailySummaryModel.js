@@ -43,11 +43,8 @@ const updateDailySummary = async (userId, date, updateData) => {
   }
 }
 
-const updateOrCreateDailySummary = async (userId, date, activitiesForDate, totalCalories) => {
+const updateOrCreateDailySummary = async (userId, date, totalCalories, totalSteps) => {
   try {
-    //Calculate total steps and calories from activities
-    const totalSteps = activitiesForDate.reduce((sum, activity) => sum + activity.steps, 0)
-
     //Prepare the daily summary data
     const dailySummaryData = {
       user_id: userId,

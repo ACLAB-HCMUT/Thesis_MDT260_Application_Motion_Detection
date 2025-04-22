@@ -28,8 +28,11 @@ const updateDailySummaryMiddleware = async (req, res, next) => {
       // Calculate total calories burned for the date
       const totalCalories = activitiesForDate.reduce((sum, activity) => sum + calculateCalories(activity), 0)
 
+      // Calculate total steps for the date
+      const totalSteps = activitiesForDate.reduce((sum, activity) => sum + activity.steps, 0)
+
       // Update or create the daily summary for the user and date
-      await DAILY_SUMMARY_MODEL.updateOrCreateDailySummary(userId, date, activitiesForDate, totalCalories)
+      await DAILY_SUMMARY_MODEL.updateOrCreateDailySummary(userId, date, totalCalories, totalSteps)
     }
     return res.status(StatusCodes.CREATED).json({
       status: 'success',
