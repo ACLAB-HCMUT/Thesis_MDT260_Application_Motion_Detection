@@ -17,10 +17,10 @@ class DeviceListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(
-        device.platformName.isNotEmpty ? device.platformName : "Thiết bị không xác định",
+        device.platformName.isNotEmpty ? device.platformName : "Unknown Device",
       ),
       subtitle: Text(device.remoteId.toString()),
-      trailing: Text(isConnecting ? "Đang kết nối" : "Kết nối"), // Change the text based on the connecting state
+      trailing: Text(isConnecting ? "Connecting..." : "Connect"), // Change the text based on the connecting state
       onTap: onTap,
     );
   }

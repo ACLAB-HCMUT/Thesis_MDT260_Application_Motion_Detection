@@ -14,8 +14,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifications => 'Detected actions:';
-
-
+  
+  @override
+  String get step_count => "Today's step count:";
+  
+   @override
+  String get step => "Steps";
   //Settings screen
   @override
   String get dart_mode => 'Dart Mode';

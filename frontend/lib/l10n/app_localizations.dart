@@ -40,8 +40,11 @@ abstract class AppLocalizations {
   String get hello;
 
   String get notifications;
-
-   //Dashboard screen
+  
+  String get step_count;
+  
+  
+  //Dashboard screen
   String get dart_mode;
 
   String get settings;

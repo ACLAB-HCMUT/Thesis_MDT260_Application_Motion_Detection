@@ -8,9 +8,9 @@ class ActivityChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<ChartData> chartData = [
       ChartData('Đứng yên:', 5, '100%', Colors.red),
-      ChartData('Đi cầu thang', 10, '100%', Colors.yellow),
-      ChartData('Chạy bộ', 10, '100%', Colors.blue),
-      ChartData('Đi bộ', 24, '100%', Colors.green),
+      ChartData('Đi cầu thang', 4, '100%', Colors.yellow),
+      ChartData('Chạy bộ', 7, '100%', Colors.blue),
+      ChartData('Đi bộ', 8, '100%', Colors.green),
     ];
 
     const double maximumValue = 24; // Giá trị tối đa
@@ -57,11 +57,11 @@ class ActivityChart extends StatelessWidget {
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    LegendItem(color: Colors.red, text: 'Đứng yên: 5 giờ'),
+                    LegendItem(color: Colors.red, text: 'Idle: 5 hours'),
                     LegendItem(
-                        color: Colors.yellow, text: 'Đi cầu thang: 6 giờ'),
-                    LegendItem(color: Colors.blue, text: 'Chạy bộ: 7 giờ'),
-                    LegendItem(color: Colors.green, text: 'Đi bộ: 8 giờ'),
+                        color: Colors.yellow, text: 'Stepping stair: 4 hours'),
+                    LegendItem(color: Colors.blue, text: 'Running: 7 hours'),
+                    LegendItem(color: Colors.green, text: 'Walking: 8 hours'),
                   ],
                 ),
               ],

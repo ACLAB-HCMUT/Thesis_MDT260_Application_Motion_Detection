@@ -7,7 +7,8 @@ class UpdateProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cập nhật thông tin cá nhân'),
+        title: const Text('Update Personal Information'
+        , style: TextStyle(fontSize: 18))
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -18,7 +19,7 @@ class UpdateProfileScreen extends StatelessWidget {
               // Họ và tên
               TextField(
                 decoration: const InputDecoration(
-                  labelText: 'Họ và Tên',
+                  labelText: 'Full Name',
                   prefixIcon: Icon(Icons.person),
                 ),
               ),
@@ -27,7 +28,7 @@ class UpdateProfileScreen extends StatelessWidget {
               // Chiều cao
               TextField(
                 decoration: const InputDecoration(
-                  labelText: 'Chiều cao (cm)',
+                  labelText: 'Height (cm)',
                   prefixIcon: Icon(Icons.height),
                 ),
                 keyboardType: TextInputType.number,
@@ -37,7 +38,7 @@ class UpdateProfileScreen extends StatelessWidget {
               // Cân nặng
               TextField(
                 decoration: const InputDecoration(
-                  labelText: 'Cân nặng (kg)',
+                  labelText: 'Weight (kg)',
                   prefixIcon: Icon(Icons.monitor_weight),
                 ),
                 keyboardType: TextInputType.number,
@@ -47,7 +48,7 @@ class UpdateProfileScreen extends StatelessWidget {
               // Ngày sinh
               TextField(
                 decoration: InputDecoration(
-                  labelText: 'Ngày sinh',
+                  labelText: 'Date of Birth',
                   prefixIcon: const Icon(Icons.calendar_today),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.calendar_today),
@@ -62,17 +63,17 @@ class UpdateProfileScreen extends StatelessWidget {
               // Giới tính
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
-                  labelText: 'Giới tính',
+                  labelText: 'Gender',
                   prefixIcon: Icon(Icons.accessibility),
                 ),
                 items: const [
                   DropdownMenuItem(
-                    value: 'Nam',
-                    child: Text('Nam'),
+                    value: 'male',
+                    child: Text('Male'),
                   ),
                   DropdownMenuItem(
-                    value: 'Nữ',
-                    child: Text('Nữ'),
+                    value: 'female',
+                    child: Text('Female'),
                   ),
                 ],
                 onChanged: (value) {
@@ -93,7 +94,7 @@ class UpdateProfileScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red, // Màu đỏ cho nút Hủy
                     ),
-                    child: const Text('Hủy'),
+                    child: const Text('Cancel'),
                   ),
                   
                   // Nút Lưu
@@ -104,7 +105,7 @@ class UpdateProfileScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue, // Màu xanh cho nút Lưu
                     ),
-                    child: const Text('Lưu'),
+                    child: const Text('Save'),
                   ),
                 ],
               ),

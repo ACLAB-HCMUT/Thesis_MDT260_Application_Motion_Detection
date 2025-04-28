@@ -6,7 +6,7 @@ class NotificationsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thông Báo'),
+        title: Text('Notifications'),
       ),
       body: ListView.builder(
         itemCount: mockNotifications.length,

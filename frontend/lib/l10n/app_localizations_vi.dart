@@ -16,7 +16,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get notifications => 'Phát hiện hành động:';
- 
+  
+  @override
+  String get step_count => 'Số bước hôm nay:';
+
+  @override
+  String get step => 'Bước';
 
  //Settings screen
   @override

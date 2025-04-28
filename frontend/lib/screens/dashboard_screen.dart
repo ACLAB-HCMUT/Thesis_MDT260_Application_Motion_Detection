@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../components/activity_chart.dart';
 import 'detail_screen.dart';
-// import '../l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/app_localization_provider.dart';
 import '../components/active_chart_replay.dart';
 
@@ -19,7 +19,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Dashboard"),
+          title: const Text("Home"),
           backgroundColor: Colors.black,
           automaticallyImplyLeading: true, //false to delete icon back
         ),
@@ -31,7 +31,7 @@ class DashboardScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 20, left: 16),
                 child: Text(
-                  "Hello, User!",
+                  "Hello!",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -40,10 +40,8 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
 
-              /// **Khoảng cách nhỏ**
               const SizedBox(height: 10),
 
-              /// **Biểu đồ hoạt động (Ở trên cùng)**
               const SizedBox(
                 height: 230,
                 width: double.infinity,
@@ -52,7 +50,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
               SizedBox(
-                height: 230,
+                height: 125,
                 width: double.infinity,
                 child: ActivityChartReplay(),
               ),
@@ -75,9 +73,9 @@ class DashboardScreen extends StatelessWidget {
                           color: Colors.green, size: 24),
                       Expanded(
                         child: Text(
-                          "Số bước hôm nay: $stepsToday bước",
+                          "Steps Today: $stepsToday steps",
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -110,9 +108,9 @@ class DashboardScreen extends StatelessWidget {
                           color: Colors.green, size: 24),
                       Expanded(
                         child: Text(
-                          "Calo tiêu thụ hôm nay: $caloriesBurned kcal",
+                          "Calories Burned Today: $caloriesBurned kcal",
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -171,7 +169,7 @@ class DashboardScreen extends StatelessWidget {
                           minWidth: 200, minHeight: 50), // Kích thước tối thiểu
                       alignment: Alignment.center,
                       child: const Text(
-                        "Tất cả nhật ký",
+                        "All Logs",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
