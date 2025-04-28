@@ -15,7 +15,10 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thay đổi thông tin đăng nhập'),
+        title: const Text(
+          'Update Login Information',
+          style: TextStyle(fontSize: 20), // Adjust font size here
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -26,8 +29,8 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
               // Username
               TextField(
                 decoration: const InputDecoration(
-                  labelText: 'Tên đăng nhập',
-                  prefixIcon: Icon(Icons.person), // Icon user
+                  labelText: 'Username',
+                  prefixIcon: Icon(Icons.person), // User icon
                 ),
               ),
               const SizedBox(height: 16),
@@ -36,21 +39,23 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
               TextField(
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.email), // Icon email
+                  prefixIcon: Icon(Icons.email), // Email icon
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
 
-              // Mật khẩu cũ
+              // Old Password
               TextField(
                 obscureText: _obscureOldPassword,
                 decoration: InputDecoration(
-                  labelText: 'Mật khẩu cũ',
-                  prefixIcon: const Icon(Icons.lock), // Icon password
+                  labelText: 'Old Password',
+                  prefixIcon: const Icon(Icons.lock), // Password icon
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureOldPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureOldPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -62,15 +67,18 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Mật khẩu mới
+              // New Password
               TextField(
                 obscureText: _obscureNewPassword,
                 decoration: InputDecoration(
-                  labelText: 'Mật khẩu mới',
-                  prefixIcon: const Icon(Icons.lock_outline), // Icon password mới
+                  labelText: 'New Password',
+                  prefixIcon:
+                      const Icon(Icons.lock_outline), // New password icon
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureNewPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureNewPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -82,30 +90,32 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Nút Hủy và Cập nhật trên cùng một hàng
+              // Cancel and Update buttons on the same row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // Nút Hủy
+                  // Cancel Button
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context); // Quay lại màn hình trước đó
+                      Navigator.pop(context); // Go back to the previous screen
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red, // Màu đỏ cho nút Hủy
+                      backgroundColor:
+                          Colors.red, // Red color for Cancel button
                     ),
-                    child: const Text('Hủy'),
+                    child: const Text('Cancel'),
                   ),
 
-                  // Nút Cập nhật
+                  // Update Button
                   ElevatedButton(
                     onPressed: () {
-                      // Logic cập nhật thông tin đăng nhập
+                      // Logic to update login information
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue, // Màu xanh cho nút Cập nhật
+                      backgroundColor:
+                          Colors.blue, // Blue color for Update button
                     ),
-                    child: const Text('Cập nhật'),
+                    child: const Text('Update'),
                   ),
                 ],
               ),

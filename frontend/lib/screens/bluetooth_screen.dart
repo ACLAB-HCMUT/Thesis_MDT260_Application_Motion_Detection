@@ -31,9 +31,9 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     if (state != BluetoothAdapterState.on) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Bluetooth hiện đang tắt. Vui lòng bật Bluetooth.'),
+          content: const Text('Bluetooth is off. Please turn on Bluetooth.'),
           action: SnackBarAction(
-            label: 'BẬT',
+            label: 'TURN ON',
             onPressed: () async {
               await FlutterBluePlus.turnOn();
             },
@@ -52,7 +52,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     ].request();
 
     if (statuses[Permission.bluetoothConnect]?.isDenied ?? true) {
-      print('Quyền kết nối Bluetooth bị từ chối');
+      print('Bluetooth connection permission denied');
     }
   }
 
@@ -71,7 +71,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
 
   Future<void> _startScan() async {
     if (!(await Permission.bluetoothConnect.isGranted)) {
-      print('Quyền kết nối Bluetooth chưa được cấp');
+      print('Bluetooth connection permission not granted');
       return;
     }
     if (_isScanning) return;
@@ -109,13 +109,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
         _connectedDevice = device;
         _connectingDevice = null; // Device connected, stop showing connecting state
       });
-      Navigator.pop(context, device);  // Trả về thiết bị sau khi kết nối thành công
-      print('Đã kết nối với thiết bị: ${device.platformName}');
+      Navigator.pop(context, device);  // Return the device after a successful connection
+      print('Connected to device: ${device.platformName}');
     } catch (e) {
       setState(() {
         _connectingDevice = null; // Stop showing connecting state in case of error
       });
-      print('Không thể kết nối với thiết bị: $e');
+      print('Unable to connect to the device: $e');
     }
   }
 
@@ -125,7 +125,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       setState(() {
         _connectedDevice = null;
       });
-      print('Đã ngắt kết nối với thiết bị');
+      print('Disconnected from device');
     }
   }
 
@@ -133,7 +133,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Kết nối Bluetooth"),
+        title: const Text("Bluetooth Connection"),
       ),
       body: Center(
         child: Column(
@@ -141,18 +141,18 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
           children: <Widget>[
             if (_connectedDevice != null) ...[
               Text(
-                "Đã kết nối với: ${_connectedDevice!.platformName}",
+                "Connected to: ${_connectedDevice!.platformName}",
                 style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _disconnectDevice,
-                child: const Text("Ngắt kết nối"),
+                child: const Text("Disconnect"),
               ),
             ] else ...[
               ElevatedButton(
                 onPressed: _startScan,
-                child: Text(_isScanning ? "Đang quét..." : "Quét thiết bị"),
+                child: Text(_isScanning ? "Scanning..." : "Scan for Devices"),
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -162,7 +162,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                     final device = _availableDevices[index];
                     return DeviceListTile(
                       device: device,
-                      isConnecting: _connectingDevice == device, // Show "Đang kết nối" for this device
+                      isConnecting: _connectingDevice == device, // Show "Connecting" for this device
                       onTap: () => _connectToDevice(device),
                     );
                   },

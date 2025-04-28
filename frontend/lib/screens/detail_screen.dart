@@ -13,18 +13,18 @@ class _DetailScreenState extends State<DetailScreen> {
   DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime endDate = DateTime.now();
 
-  /// **Dữ liệu mẫu**
+  /// **Sample Data**
   final List<ActivityData> allData = [
-    ActivityData("Ngày 1", 5000, 200, 5, 6, 3, 8),
-    ActivityData("Ngày 2", 6000, 250, 6, 5, 4, 7),
-    ActivityData("Ngày 3", 7000, 300, 7, 8, 5, 6),
-    ActivityData("Ngày 4", 5500, 225, 4, 7, 6, 9),
-    ActivityData("Ngày 5", 6500, 275, 6, 9, 4, 10),
-    ActivityData("Ngày 6", 7200, 320, 5, 10, 3, 12),
-    ActivityData("Ngày 7", 8000, 350, 7, 8, 6, 11),
+    ActivityData("Day 1", 5000, 200, 5, 6, 3, 8),
+    ActivityData("Day 2", 6000, 250, 6, 5, 4, 7),
+    ActivityData("Day 3", 7000, 300, 7, 8, 5, 6),
+    ActivityData("Day 4", 5500, 225, 4, 7, 6, 9),
+    ActivityData("Day 5", 6500, 275, 6, 9, 4, 10),
+    ActivityData("Day 6", 7200, 320, 5, 10, 3, 12),
+    ActivityData("Day 7", 8000, 350, 7, 8, 6, 11),
   ];
 
-  /// **Lọc dữ liệu theo khoảng ngày**
+  /// **Filter Data by Date Range**
   List<ActivityData> getFilteredData() {
     if (startDate.isAfter(endDate)) {
       DateTime temp = startDate;
@@ -41,7 +41,7 @@ class _DetailScreenState extends State<DetailScreen> {
     return allData.sublist(startIndex, endIndex + 1);
   }
 
-  /// **Chọn ngày**
+  /// **Select Date**
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     DateTime initialDate = isStart ? startDate : endDate;
     final DateTime? picked = await showDatePicker(
@@ -84,39 +84,39 @@ class _DetailScreenState extends State<DetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Nhật ký hoạt động"),
+        title: const Text("Activity Log"),
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
       body: Column(
         children: [
-          /// **Chọn ngày bắt đầu và kết thúc**
+          /// **Select Start and End Date**
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             child: Row(
               children: [
                 Expanded(
-                  child: _datePickerButton(context, "Từ", startDate, true),
+                  child: _datePickerButton(context, "From", startDate, true),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _datePickerButton(context, "Đến", endDate, false),
+                  child: _datePickerButton(context, "To", endDate, false),
                 ),
               ],
             ),
           ),
 
-          /// **Biểu đồ cột**
+          /// **Column Chart**
           Expanded(
             child: SfCartesianChart(
               backgroundColor: Colors.black,
               primaryXAxis: CategoryAxis(
                 labelStyle: const TextStyle(
-                    color: Colors.transparent), // Ẩn chữ dưới trục X
+                    color: Colors.transparent), // Hide X-axis labels
                 majorGridLines:
-                    const MajorGridLines(width: 0), // Ẩn đường lưới ngang
+                    const MajorGridLines(width: 0), // Hide horizontal grid lines
                 minorGridLines: const MinorGridLines(width: 0),
-                axisLine: const AxisLine(width: 0), // Ẩn trục
+                axisLine: const AxisLine(width: 0), // Hide axis line
               ),
               primaryYAxis: NumericAxis(
                   labelStyle: const TextStyle(color: Colors.white),
@@ -124,28 +124,28 @@ class _DetailScreenState extends State<DetailScreen> {
                   maximum: 24),
               series: <ChartSeries>[
                 ColumnSeries<ActivityData, String>(
-                  name: "Đứng yên",
+                  name: "Idle",
                   dataSource: filteredData,
                   xValueMapper: (ActivityData data, _) => data.day,
                   yValueMapper: (ActivityData data, _) => data.standing,
                   color: Colors.red,
                 ),
                 ColumnSeries<ActivityData, String>(
-                  name: "Đi bộ",
+                  name: "Walking",
                   dataSource: filteredData,
                   xValueMapper: (ActivityData data, _) => data.day,
                   yValueMapper: (ActivityData data, _) => data.walking,
                   color: Colors.green,
                 ),
                 ColumnSeries<ActivityData, String>(
-                  name: "Đi cầu thang",
+                  name: "Stepping stair",
                   dataSource: filteredData,
                   xValueMapper: (ActivityData data, _) => data.day,
                   yValueMapper: (ActivityData data, _) => data.stairs,
-                  color: Colors.orange,
+                  color: Colors.yellow,
                 ),
                 ColumnSeries<ActivityData, String>(
-                  name: "Chạy bộ",
+                  name: "Running",
                   dataSource: filteredData,
                   xValueMapper: (ActivityData data, _) => data.day,
                   yValueMapper: (ActivityData data, _) => data.running,
@@ -161,15 +161,15 @@ class _DetailScreenState extends State<DetailScreen> {
               spacing: 20,
               runSpacing: 10,
               children: [
-                _activityLabel("Đứng yên", Colors.red),
-                _activityLabel("Đi bộ", Colors.green),
-                _activityLabel("Đi cầu thang", Colors.orange),
-                _activityLabel("Chạy bộ", Colors.blue),
+                _activityLabel("Idle", Colors.red),
+                _activityLabel("Walking", Colors.green),
+                _activityLabel("Stepping stair", Colors.yellow),
+                _activityLabel("Running", Colors.blue),
               ],
             ),
           ),
 
-                    Padding(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Container(
               width: double.infinity,
@@ -181,8 +181,8 @@ class _DetailScreenState extends State<DetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _statisticRow("Tổng số bước", "$totalSteps bước"),
-                  _statisticRow("Năng lượng tiêu thụ", "$totalCalories kcal"),
+                  _statisticRow("Total Steps", "$totalSteps steps"),
+                  _statisticRow("Calories Burned", "$totalCalories kcal"),
                 ],
               ),
             ),
@@ -192,7 +192,7 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
-  /// **Nút chọn ngày**
+  /// **Date Picker Button**
   Widget _datePickerButton(
       BuildContext context, String label, DateTime date, bool isStart) {
     return GestureDetector(
@@ -215,7 +215,7 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
-  /// **Hiển thị dòng thống kê**
+  /// **Display Statistic Row**
   Widget _statisticRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -234,7 +234,7 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
-  /// **Nhãn hoạt động (2 cái một hàng)**
+  /// **Activity Labels (2 per row)**
   Widget _activityLabel(String name, Color color) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.4,
@@ -247,14 +247,14 @@ class _DetailScreenState extends State<DetailScreen> {
         children: [
           Icon(Icons.circle, color: color, size: 12),
           const SizedBox(width: 8),
-          Text(name, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(name, style: const TextStyle(color: Colors.white, fontSize: 12)),
         ],
       ),
     );
   }
 }
 
-/// **Dữ liệu hoạt động**
+/// **Activity Data**
 class ActivityData {
   ActivityData(this.day, this.steps, this.calories, this.standing, this.walking,
       this.stairs, this.running);

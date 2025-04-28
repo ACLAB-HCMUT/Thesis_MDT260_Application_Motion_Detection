@@ -10,7 +10,7 @@ class UserProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hồ Sơ Người Dùng'),
+        title: const Text('User Profile'),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(
@@ -25,7 +25,7 @@ class UserProfileScreen extends StatelessWidget {
             children: [
               TextField(
                 controller: TextEditingController(text: mockUsers[0]['name']),
-                decoration: const InputDecoration(labelText: 'Tên'),
+                decoration: const InputDecoration(labelText: 'Name'),
               ),
               TextField(
                 controller: TextEditingController(text: mockUsers[0]['email']),
@@ -44,7 +44,7 @@ class UserProfileScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue, // Màu nền cho button
                 ),
-                child: const Text('Cập nhật thông tin cá nhân'),
+                child: const Text('Update Personal Information'),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
@@ -60,7 +60,7 @@ class UserProfileScreen extends StatelessWidget {
                   backgroundColor: const Color.fromARGB(
                       255, 156, 125, 78), // Màu nền cho button
                 ),
-                child: const Text('Thay đổi thông tin đăng nhập'),
+                child: const Text('Change Login Information'),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
@@ -71,7 +71,7 @@ class UserProfileScreen extends StatelessWidget {
                   backgroundColor: const Color.fromARGB(
                       255, 180, 23, 12), // Màu nền đỏ cho button Đăng xuất
                 ),
-                child: const Text('Đăng xuất'),
+                child: const Text('Log out'),
               ),
             ],
           ),

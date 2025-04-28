@@ -119,6 +119,33 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
     }
   }
 
+  // // Phát hiện và lấy thông tin dữ liệu từ bộ nhớ cục bộ của thiết bị
+  // Future<void> _getDeviceServices(BluetoothDevice device) async {
+  //   try {
+  //     // Lấy danh sách các dịch vụ của thiết bị
+  //     List<BluetoothService> services = await device.discoverServices();
+  //     for (BluetoothService service in services) {
+  //       print('Service UUID: ${service.uuid}');
+  //       // Lấy đặc tính (Characteristic) từ mỗi dịch vụ
+  //       for (BluetoothCharacteristic characteristic
+  //           in service.characteristics) {
+  //         print('Characteristic UUID: ${characteristic.uuid}');
+
+  //         // Nếu có đặc tính nào lưu trữ dữ liệu (data) trong bộ nhớ cục bộ
+  //         if (characteristic.uuid.toString() == 'UUID_CUA_DAC_TINH') {
+  //           // Thay 'UUID_CUA_DAC_TINH' bằng UUID của đặc tính bạn cần
+  //           List<int> value =
+  //               await characteristic.read(); // Đọc giá trị từ đặc tính
+  //           print('Dữ liệu từ bộ nhớ cục bộ: $value');
+  //           _handleReceivedData(value); // Xử lý dữ liệu nhận được
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Lỗi khi lấy dịch vụ và đặc tính: $e');
+  //   }
+  // }
+
   void _handleReceivedData(List<int> value) {
     final timestamp = DateTime.now().toIso8601String();
     print('[$timestamp] Received data: $value');
@@ -148,17 +175,17 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
         return 'Walking';
       case 'running':
         return 'Running';
-      case 'goingstair':
+      case 'stair_climbing':
         return 'Going Stairs';
       default:
-        return 'Stand still'; // Nếu không nhận được hành động nào thì mặc định là Stand still
+        return 'Stand still';
     }
   }
 
   // Hàm reset timer mỗi khi nhận được dữ liệu mới
   void _resetStandStillTimer() {
     _standStillTimer?.cancel(); // Hủy timer cũ
-    _standStillTimer = Timer(const Duration(seconds: 5), () {
+    _standStillTimer = Timer(const Duration(seconds: 10), () {
       setState(() {
         _currentActivity =
             'Stand still'; // Sau 5s không nhận được dữ liệu sẽ tự động hiển thị Stand still

@@ -5,9 +5,9 @@ const mockDevices = [
 ];
 
 const mockNotifications = [
-  {'time': '10:00 AM', 'action': 'Phát hiện chuyển động - Đi bộ'},
-  {'time': '10:05 AM', 'action': 'Phát hiện chuyển động - Chạy bộ'},
-  {'time': '10:15 AM', 'action': 'Phát hiện chuyển động - Đi cầu thang'},
+  {'time': '10:00 AM', 'action': 'Motion detected - Walking'},
+  {'time': '10:05 AM', 'action': 'Motion detected - Running'},
+  {'time': '10:15 AM', 'action': 'Motion detected - Climbing stairs'},
 ];
 
 List<Map<String, dynamic>> mockUsers= [
