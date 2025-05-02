@@ -8,6 +8,10 @@ const DAILY_SUMMARY_SCHEMA = Joi.object({
   date: Joi.date().required(), // Date of the summary
   total_steps: Joi.number().min(0).required(), // Total steps taken on that date
   total_calories: Joi.number().required(), // Total calories burned on that date
+  total_walking_time: Joi.number().min(0).default(0), // Total walking time in hours
+  total_running_time: Joi.number().min(0).default(0), // Total running time in hours
+  total_stepping_stair_time: Joi.number().min(0).default(0), // Total stepping stair time in hours
+  total_idle_time: Joi.number().min(0).default(0), // Total idle time in hours
   createdAt: Joi.date().default(() => new Date()),
   updatedAt: Joi.date().default(() => new Date())
 })
@@ -43,7 +47,7 @@ const updateDailySummary = async (userId, date, updateData) => {
   }
 }
 
-const updateOrCreateDailySummary = async (userId, date, totalCalories, totalSteps) => {
+const updateOrCreateDailySummary = async (userId, date, totalCalories, totalSteps, totalTimes) => {
   try {
     //Prepare the daily summary data
     const dailySummaryData = {
@@ -51,6 +55,10 @@ const updateOrCreateDailySummary = async (userId, date, totalCalories, totalStep
       date: date,
       total_steps: totalSteps,
       total_calories: totalCalories || 0, // Use provided calories or default to 0
+      total_walking_time: totalTimes.totalWalkingTime || 0,
+      total_running_time: totalTimes.totalRunningTime || 0,
+      total_stepping_stair_time: totalTimes.totalSteppingStairTime || 0,
+      total_idle_time: totalTimes.totalIdleTime || 0,
       updatedAt: new Date()
     }
 
