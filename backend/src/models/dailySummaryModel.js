@@ -82,10 +82,25 @@ const updateOrCreateDailySummary = async (userId, date, totalCalories, totalStep
   }
 }
 
+const getSingleDailySummary = async (userId, date) => {
+  try {
+    //Query the database for the daily summary
+    const dailySummary = await GET_DB().collection(DAILY_SUMMARY_COLLECTION_NAME).findOne({
+      user_id: userId,
+      date: new Date(date) // Convert date to ISO string
+    })
+    return dailySummary
+  }
+  catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const DAILY_SUMMARY_MODEL = {
   DAILY_SUMMARY_COLLECTION_NAME,
   DAILY_SUMMARY_SCHEMA,
   createNewDailySummary,
   updateDailySummary,
-  updateOrCreateDailySummary
+  updateOrCreateDailySummary,
+  getSingleDailySummary
 }

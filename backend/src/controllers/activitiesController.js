@@ -29,12 +29,6 @@ const submitActivities = async (req, res, next) => {
     //Call next() to proceed the updateDailySummaryMiddleware
     req.activities = activities
     next()
-
-    // return res.status(StatusCodes.CREATED).json({
-    //   status: 'success',
-    //   message: 'Activities submitted successfully',
-    //   data: activities
-    // })
   } catch (error) {
     return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
   }
