@@ -4,6 +4,12 @@ import { DAILY_SUMMARY_MODEL } from '~/models/dailySummaryModel'
 import { ACTIVITY_MODEL } from '~/models/activityModel'
 import ApiError from '~/utils/ApiError'
 
+// Utility function to validate date format
+const isValidDateFormat = (date) => {
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/ // YYYY-MM-DD format
+  return dateRegex.test(date)
+}
+
 const getSingleDailySummary = async (req, res, next) => {
   try {
     const userId = req.user.id
@@ -16,6 +22,11 @@ const getSingleDailySummary = async (req, res, next) => {
     const { date } = req.params
     if (!date) {
       return next(new ApiError(StatusCodes.BAD_REQUEST, 'Date is required'))
+    }
+
+    //Check if the date is YYYY-MM-DD format
+    if (!isValidDateFormat(date)) {
+      return next(new ApiError(StatusCodes.BAD_REQUEST, 'Date must be in YYYY-MM-DD format'))
     }
 
     const dailySummary = await DAILY_SUMMARY_MODEL.getSingleDailySummary(userId, date)
@@ -52,6 +63,11 @@ const getDailySummaryByDateRange = async (req, res, next) => {
     const { startDate, endDate } = req.query // Extract startDate and endDate from query parameters
     if (!startDate || !endDate) {
       return next(new ApiError(StatusCodes.BAD_REQUEST, 'Start date and end date are required'))
+    }
+
+    //Check if the dates are in YYYY-MM-DD format
+    if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate)) {
+      return next(new ApiError(StatusCodes.BAD_REQUEST, 'Dates must be in YYYY-MM-DD format'))
     }
 
     const dailySummaries = await DAILY_SUMMARY_MODEL.getDailySummariesByDateRange(userId, startDate, endDate)
