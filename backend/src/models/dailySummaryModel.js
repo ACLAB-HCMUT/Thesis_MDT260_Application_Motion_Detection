@@ -96,11 +96,34 @@ const getSingleDailySummary = async (userId, date) => {
   }
 }
 
+const getDailySummariesByDateRange = async (userId, startDate, endDate) => {
+  try {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    
+    //Ensure endDate includes the entire date
+    end.setUTCHours(23, 59, 59, 999)
+
+    //Query the database for daily summaries within the specified date range
+    const dailySummaries = await GET_DB().collection(DAILY_SUMMARY_COLLECTION_NAME).find({
+      user_id: userId,
+      date: {
+        $gte: start,
+        $lte: end
+      }
+    }).toArray()
+    return dailySummaries
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const DAILY_SUMMARY_MODEL = {
   DAILY_SUMMARY_COLLECTION_NAME,
   DAILY_SUMMARY_SCHEMA,
   createNewDailySummary,
   updateDailySummary,
   updateOrCreateDailySummary,
-  getSingleDailySummary
+  getSingleDailySummary,
+  getDailySummariesByDateRange
 }
