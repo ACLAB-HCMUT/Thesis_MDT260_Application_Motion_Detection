@@ -61,12 +61,16 @@ const updateDailySummaryMiddleware = async (req, res, next) => {
       const totalSteps = activitiesForDate.reduce((sum, activity) => sum + activity.steps, 0)
 
       // Update or create the daily summary for the user and date
-      await DAILY_SUMMARY_MODEL.updateOrCreateDailySummary(userId, date, totalCalories, totalSteps, {
-        totalWalkingTime: totalTime.walking / 3600, // Convert seconds to hours
-        totalRunningTime: totalTime.running / 3600,
-        totalSteppingStairTime: totalTime.steppingStair / 3600,
-        totalIdleTime: totalTime.idle / 3600
-      })
+      await DAILY_SUMMARY_MODEL.updateOrCreateDailySummary(
+        userId,
+        new Date(date).toISOString().split('T')[0],
+        totalCalories,
+        totalSteps, {
+          totalWalkingTime: totalTime.walking / 3600, // Convert seconds to hours
+          totalRunningTime: totalTime.running / 3600,
+          totalSteppingStairTime: totalTime.steppingStair / 3600,
+          totalIdleTime: totalTime.idle / 3600
+        })
     }
     return res.status(StatusCodes.CREATED).json({
       status: 'success',

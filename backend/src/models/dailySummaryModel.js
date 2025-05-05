@@ -37,10 +37,22 @@ const updateDailySummary = async (userId, date, updateData) => {
     // Validate the update data
     const validatedUpdateData = await DAILY_SUMMARY_SCHEMA.validateAsync(updateData, { abortEarly: false })
 
-    // Update the daily summary in the database
+    // Increment the existing values in the database
     return await GET_DB().collection(DAILY_SUMMARY_COLLECTION_NAME).updateOne(
-      { user_id: userId, date },
-      { $set: validatedUpdateData }
+      { user_id: userId, date: new Date(date) }, // Match the user and date
+      {
+        $inc: {
+          total_steps: validatedUpdateData.total_steps,
+          total_calories: validatedUpdateData.total_calories,
+          total_walking_time: validatedUpdateData.total_walking_time,
+          total_running_time: validatedUpdateData.total_running_time,
+          total_stepping_stair_time: validatedUpdateData.total_stepping_stair_time,
+          total_idle_time: validatedUpdateData.total_idle_time
+        },
+        $set: {
+          updatedAt: new Date() // Update the timestamp
+        }
+      }
     )
   } catch (error) {
     throw new Error(error)
@@ -65,7 +77,7 @@ const updateOrCreateDailySummary = async (userId, date, totalCalories, totalStep
     //Check if a daily summary already exists for the user on the specified date
     const existingSummary = await GET_DB().collection(DAILY_SUMMARY_COLLECTION_NAME).findOne({
       user_id: userId,
-      date
+      date: new Date(date) // Convert date to ISO string
     })
 
     if (existingSummary) {
@@ -100,7 +112,7 @@ const getDailySummariesByDateRange = async (userId, startDate, endDate) => {
   try {
     const start = new Date(startDate)
     const end = new Date(endDate)
-    
+
     //Ensure endDate includes the entire date
     end.setUTCHours(23, 59, 59, 999)
 
