@@ -26,11 +26,9 @@ const submitActivities = async (req, res, next) => {
     //Store the activities in the database
     await ACTIVITY_MODEL.createNewActivities(activities)
 
-    return res.status(StatusCodes.CREATED).json({
-      status: 'success',
-      message: 'Activities submitted successfully',
-      data: activities
-    })
+    //Call next() to proceed the updateDailySummaryMiddleware
+    req.activities = activities
+    next()
   } catch (error) {
     return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message))
   }
