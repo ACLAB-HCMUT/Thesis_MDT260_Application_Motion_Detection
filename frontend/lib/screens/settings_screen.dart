@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import '../main.dart';
+
+import '../models/theme_notifier.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_localization_provider.dart';
 
@@ -50,16 +51,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Disconnect BLE'),
-        content: const Text('Are you sure you want to disconnect?'),
+        title: Text(AppLocalizations.of(context)!.disconnect_BLE),
+        content: Text(AppLocalizations.of(context)!.are_you_sure),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Disconnect'),
+            child: Text(AppLocalizations.of(context)!.disconnect),
           ),
         ],
       ),
@@ -79,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.settings),
+        automaticallyImplyLeading: false,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

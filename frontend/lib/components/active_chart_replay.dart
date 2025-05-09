@@ -1,15 +1,74 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as dart_ui;
+import 'package:intl/intl.dart';
+import '../services/daily_summary_service.dart'; // Đảm bảo đúng đường dẫn file service của bạn
 
-class ActivityChartReplay extends StatelessWidget {
+class ActivityChartReplay extends StatefulWidget {
+  const ActivityChartReplay({super.key});
+
+  @override
+  _ActivityChartReplayState createState() => _ActivityChartReplayState();
+}
+
+class _ActivityChartReplayState extends State<ActivityChartReplay> {
+  List<Map<String, dynamic>> _activityData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchActivityData();
+  }
+
+  Future<void> fetchActivityData() async {
+    final data =
+        await DailySummaryService().getDailySummaryToday(); // Gọi API của bạn
+    if (data['error'] == null) {
+      final List<dynamic> raw = data['data']?['activities'] ?? [];
+
+      // Sắp xếp dữ liệu theo thời gian (nếu cần)
+      raw.sort((a, b) => DateTime.parse(a['timestamp'])
+          .compareTo(DateTime.parse(b['timestamp'])));
+
+      List<Map<String, dynamic>> parsed = [];
+      DateTime? lastTimestamp;
+
+      for (var item in raw) {
+        try {
+          DateTime timestamp = DateTime.parse(item['timestamp']);
+
+          // Nếu lastTimestamp không phải là null và cách nhau ít nhất 2 phút
+          if (lastTimestamp == null ||
+              timestamp.difference(lastTimestamp).inMinutes >= 2) {
+            final time = DateFormat('HH:mm').format(timestamp);
+            parsed.add({
+              'time': time,
+              'activity': item['activity'],
+            });
+          }
+
+          // Cập nhật lastTimestamp
+          lastTimestamp = timestamp;
+        } catch (e) {
+          // Nếu gặp lỗi, bỏ qua dữ liệu không hợp lệ
+          print('Error parsing data: $e');
+        }
+      }
+
+      setState(() {
+        _activityData = parsed;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // Cho phép cuộn ngang
+        scrollDirection: Axis.horizontal,
         child: CustomPaint(
-          size: Size(1500, 300), // Cung cấp một chiều rộng lớn hơn để cuộn
-          painter: ActionTimelinePainter(),
+          size: Size(1500, 300),
+          painter: ActionTimelinePainter(data: _activityData),
         ),
       ),
     );
@@ -17,109 +76,103 @@ class ActivityChartReplay extends StatelessWidget {
 }
 
 class ActionTimelinePainter extends CustomPainter {
-  // Dữ liệu mốc thời gian và hành động
-  final List<Map<String, dynamic>> data = [
-    {'time': '08:00', 'activity': 'Chạy'},
-    {'time': '08:02', 'activity': 'Đi bộ'},
-    {'time': '08:04', 'activity': 'Đứng yên'},
-    {'time': '08:06', 'activity': 'Đi cầu thang'},
-    {'time': '08:08', 'activity': 'Chạy'},
-    {'time': '08:10', 'activity': 'Đi bộ'},
-    {'time': '08:12', 'activity': 'Đứng yên'},
-    {'time': '08:14', 'activity': 'Đi cầu thang'},
-    // Thêm nhiều mốc thời gian nếu cần thiết
-  ];
+  final List<Map<String, dynamic>> data;
+
+  ActionTimelinePainter({required this.data});
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..style = PaintingStyle.fill
-      ..strokeWidth = 8;  // Độ dày của các đoạn thẳng
+      ..strokeWidth = 8;
 
-    final double marginLeft = 50;  // Độ lệch bên trái để tạo không gian cho trục Y
-    final double timeStep = (size.width - marginLeft) / 24;  // Độ dài giữa các mốc thời gian
+    final double marginLeft = 50;
+    final double timeStep =
+        (size.width - marginLeft) / (data.isEmpty ? 1 : data.length); // Phân phối đều
 
-    // Màu sắc cho các hành động
-    List<Color> actionColors = [
-      Colors.blue, // Chạy
-      Colors.green, // Đi bộ
-      Colors.red, // Đứng yên
-      Colors.yellow, // Đi cầu thang
-    ];
+    // Màu sắc của các hành động
+    Map<String, Color> activityColors = {
+      'idle': Colors.red,
+      'running': Colors.blue,
+      'stepping_stair': Colors.yellow,
+      'walking': Colors.green, // Có thể thêm nhiều hành động nữa
+    };
 
-    // Vẽ trục X (thời gian)
     Paint axisPaint = Paint()
       ..color = const Color.fromARGB(255, 207, 199, 199)
       ..strokeWidth = 2;
-    canvas.drawLine(Offset(marginLeft, size.height - 40), Offset(size.width, size.height - 40), axisPaint);
 
-    // Vẽ trục Y
-    canvas.drawLine(Offset(marginLeft, 0), Offset(marginLeft, size.height), axisPaint);
+    // Vẽ trục X và Y
+    canvas.drawLine(Offset(marginLeft, size.height - 40),
+        Offset(size.width, size.height - 40), axisPaint); // Trục X
+    canvas.drawLine(Offset(marginLeft, 0), Offset(marginLeft, size.height),
+        axisPaint); // Trục Y
 
-    // Vẽ mốc thời gian trên trục X
     TextPainter textPainter = TextPainter(
       textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
+      textDirection: dart_ui.TextDirection.ltr,
     );
 
-    // Vẽ các mốc thời gian tương ứng với dữ liệu
-    for (int i = 0; i < data.length; i++) {
-      String time = data[i]['time'];
-      textPainter.text = TextSpan(
-        text: time,
-        style: TextStyle(color: const Color.fromARGB(255, 228, 219, 219), fontSize: 12),
+    if (data.isEmpty) {
+      // Nếu không có dữ liệu, chỉ vẽ trục
+      textPainter.text = const TextSpan(
+        text: "No Data",
+        style: TextStyle(color: Colors.grey, fontSize: 18),
       );
       textPainter.layout();
-      double xPosition = timeToX(time, timeStep, marginLeft);
-      textPainter.paint(canvas, Offset(xPosition - textPainter.width / 2, size.height - 30));
+      textPainter.paint(
+          canvas, Offset(size.width / 2 - textPainter.width / 2, size.height / 2));
+    } else {
+      // Vẽ dữ liệu bình thường khi có dữ liệu
+      for (int i = 0; i < data.length; i++) {
+        String time = data[i]['time'];
+        String activity = data[i]['activity'];
+        textPainter.text = TextSpan(
+          text: time,
+          style: const TextStyle(
+              color: Color.fromARGB(255, 228, 219, 219), fontSize: 12),
+        );
+        textPainter.layout();
+        double xPosition = marginLeft + (i * timeStep); // Phân phối đều
+        textPainter.paint(
+            canvas, Offset(xPosition - textPainter.width / 2, size.height - 30));
 
-      // Vẽ biểu tượng hành động với màu sắc tương ứng
-      drawActionIcon(canvas, Offset(xPosition, size.height - 80), i, actionColors[i % actionColors.length]);
-    }
+        // Vẽ hành động (đoạn thẳng) khi có dữ liệu
+        paint.color =
+            activityColors[activity] ?? Colors.grey; // Màu sắc cho hành động
+        canvas.drawLine(
+          Offset(xPosition, size.height - 40),
+          Offset(xPosition + timeStep, size.height - 40),
+          paint,
+        );
 
-    // Vẽ các đoạn thẳng cho từng hành động từ dữ liệu
-    for (int i = 0; i < data.length; i++) {
-      String activity = data[i]['activity'];
-      String time = data[i]['time'];
-
-      // Tính toán thời gian dựa trên giá trị mốc thời gian
-      double startX = timeToX(time, timeStep, marginLeft);
-      double endX = startX + timeStep; // Đoạn thẳng dài 1 đơn vị thời gian (có thể điều chỉnh nếu cần)
-
-      paint.color = actionColors[i % actionColors.length]; // Sử dụng màu sắc cho các hành động
-      // Vẽ các đoạn thẳng cho hành động
-      canvas.drawLine(Offset(startX, size.height - 40), Offset(endX, size.height - 40), paint);
+        // Vẽ icon hành động (optional)
+        drawActionIcon(canvas, Offset(xPosition, size.height - 80), activity,
+            activityColors[activity] ?? Colors.grey);
+      }
     }
   }
 
-  // Hàm chuyển đổi thời gian thành giá trị X trên trục
-  double timeToX(String time, double timeStep, double marginLeft) {
-    final timeParts = time.split(':');
-    final int hour = int.parse(timeParts[0]);
-    final int minute = int.parse(timeParts[1]);
-
-    int totalMinutes = (hour - 8) * 60 + minute; // Giả sử thời gian bắt đầu từ 08:00
-    return marginLeft + (totalMinutes / 2) * timeStep; // Chuyển thời gian thành đơn vị trên trục X
-  }
-
-  // Hàm vẽ các biểu tượng hành động (biểu tượng đi bộ, đứng yên, chạy, đi cầu thang)
-  void drawActionIcon(Canvas canvas, Offset position, int actionIndex, Color iconColor) {
+  // Hàm để vẽ biểu tượng hành động (như người chạy, leo cầu thang...)
+  void drawActionIcon(
+      Canvas canvas, Offset position, String activity, Color iconColor) {
     IconData iconData;
-    switch (actionIndex % 4) { // Chỉ sử dụng index từ 0 đến 3 để đảm bảo không vượt quá số lượng biểu tượng
-      case 0:
-        iconData = Icons.directions_run;  // Chạy
+
+    // Lựa chọn biểu tượng dựa trên activity
+    switch (activity) {
+      case 'running':
+        iconData = Icons.directions_run;
         break;
-      case 1:
-        iconData = Icons.directions_walk; // Đi bộ
+      case 'stepping_stair':
+        iconData = Icons.stairs;
         break;
-      case 2:
-        iconData = Icons.accessibility;  // Đứng yên
+      case 'walking':
+        iconData = Icons.directions_walk;
         break;
-      case 3:
-        iconData = Icons.stairs;         // Đi cầu thang
-        break;
+      case 'idle':
       default:
-        iconData = Icons.help;           // Mặc định nếu không có hành động
+        iconData = Icons.accessibility;
+        break;
     }
 
     final TextPainter textPainter = TextPainter(
@@ -128,11 +181,11 @@ class ActionTimelinePainter extends CustomPainter {
         style: TextStyle(
           fontFamily: iconData.fontFamily,
           fontSize: 30,
-          color: iconColor, // Sử dụng màu sắc tương ứng với hành động
+          color: iconColor,
         ),
       ),
       textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
+      textDirection: dart_ui.TextDirection.ltr,
     );
 
     textPainter.layout();
@@ -140,7 +193,7 @@ class ActionTimelinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+  bool shouldRepaint(covariant ActionTimelinePainter oldDelegate) {
+    return oldDelegate.data != data;
   }
 }

@@ -11,6 +11,7 @@ import 'screens/signup_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/app_localization_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'models/theme_notifier.dart';
 
 void main() async {
   await dotenv.load(); // Load file .env
@@ -41,7 +42,7 @@ class MotionDetectionApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       initialRoute: '/',
       routes: {
-        '/': (context) => const MainNavigationScreen(),
+        '/': (context) => const HomePage(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/main': (context) => const MainNavigationScreen(),
@@ -93,27 +94,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard,
                 color: _selectedIndex == 0 ? Colors.blue : Colors.grey),
-            label: 'Home',
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.directions_run,
                 color: _selectedIndex == 1 ? Colors.blue : Colors.grey),
-            label: 'Live Detection',
+            label: AppLocalizations.of(context)!.live_detection,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings,
                 color: _selectedIndex == 2 ? Colors.blue : Colors.grey),
-            label: 'Settings',
+            label: AppLocalizations.of(context)!.settings,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications,
                 color: _selectedIndex == 3 ? Colors.blue : Colors.grey),
-            label: 'Notifications',
+            label: AppLocalizations.of(context)!.notifications,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person,
                 color: _selectedIndex == 4 ? Colors.blue : Colors.grey),
-            label: 'Profile',
+            label: AppLocalizations.of(context)!.profile,
           ),
         ],
         currentIndex: _selectedIndex,
@@ -124,13 +125,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-class ThemeNotifier extends ChangeNotifier {
-  bool _isDarkMode = true;
+// class ThemeNotifier extends ChangeNotifier {
+//   bool _isDarkMode = true;
 
-  bool get isDarkMode => _isDarkMode;
+//   bool get isDarkMode => _isDarkMode;
 
-  void toggleTheme() {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
-  }
-}
+//   void toggleTheme() {
+//     _isDarkMode = !_isDarkMode;
+//     notifyListeners();
+//   }
+// }

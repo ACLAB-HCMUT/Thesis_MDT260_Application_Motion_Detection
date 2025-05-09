@@ -3,6 +3,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../services/bluetooth_service.dart' as bt_service;
 import '../components/device_list_tile.dart';
+import 'dart:async'; // Add this import for StreamSubscription
 
 class BluetoothScreen extends StatefulWidget {
   const BluetoothScreen({super.key});
@@ -17,6 +18,10 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   bool _isScanning = false;
   final List<BluetoothDevice> _availableDevices = [];
   BluetoothDevice? _connectingDevice; // Track the device being connected
+  
+  // Add these variables to track subscriptions
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
+  StreamSubscription<List<ScanResult>>? _scanResultsSubscription;
 
   @override
   void initState() {
@@ -26,20 +31,36 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     _listenToAdapterState();
   }
 
+  @override
+  void dispose() {
+    // Cancel all subscriptions when widget is disposed
+    _adapterStateSubscription?.cancel();
+    _scanResultsSubscription?.cancel();
+    
+    // Stop scanning if in progress
+    if (_isScanning) {
+      FlutterBluePlus.stopScan().catchError((e) => print('Error stopping scan: $e'));
+    }
+    
+    super.dispose();
+  }
+
   Future<void> _ensureBluetoothIsOn() async {
     var state = await FlutterBluePlus.adapterState.first;
     if (state != BluetoothAdapterState.on) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Bluetooth is off. Please turn on Bluetooth.'),
-          action: SnackBarAction(
-            label: 'TURN ON',
-            onPressed: () async {
-              await FlutterBluePlus.turnOn();
-            },
+      if (mounted) { // Check if widget is still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Bluetooth is off. Please turn on Bluetooth.'),
+            action: SnackBarAction(
+              label: 'TURN ON',
+              onPressed: () async {
+                await FlutterBluePlus.turnOn();
+              },
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -57,7 +78,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   }
 
   void _listenToAdapterState() {
-    FlutterBluePlus.adapterState.listen((state) {
+    // Cancel previous subscription if exists
+    _adapterStateSubscription?.cancel();
+    
+    // Create new subscription
+    _adapterStateSubscription = FlutterBluePlus.adapterState.listen((state) {
+      if (!mounted) return; // Skip if widget is no longer mounted
+      
       if (state == BluetoothAdapterState.off) {
         _ensureBluetoothIsOn();
       }
@@ -76,35 +103,77 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     }
     if (_isScanning) return;
 
-    setState(() {
-      _isScanning = true;
-      _availableDevices.clear();
-    });
+    if (mounted) {
+      setState(() {
+        _isScanning = true;
+        _availableDevices.clear();
+      });
+    }
 
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
-
-    FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult result in results) {
-        if (!_availableDevices.contains(result.device) && result.device.platformName.isNotEmpty) {
+    try {
+      // Cancel previous subscription if exists
+      await _scanResultsSubscription?.cancel();
+      
+      // Start scan
+      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+      
+      // Create new subscription
+      _scanResultsSubscription = FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
+        if (!mounted) return; // Skip if widget is no longer mounted
+        
+        for (ScanResult result in results) {
+          if (!_availableDevices.contains(result.device) && 
+              result.device.platformName.isNotEmpty) {
+            setState(() {
+              _availableDevices.add(result.device);
+            });
+          }
+        }
+      }, onDone: () {
+        if (mounted) {
           setState(() {
-            _availableDevices.add(result.device);
+            _isScanning = false;
           });
         }
+      }, onError: (e) {
+        print('Scan error: $e');
+        if (mounted) {
+          setState(() {
+            _isScanning = false;
+          });
+        }
+      });
+      
+      // Set a timeout to ensure _isScanning is reset
+      Future.delayed(const Duration(seconds: 6), () {
+        if (mounted && _isScanning) {
+          setState(() {
+            _isScanning = false;
+          });
+        }
+      });
+    } catch (e) {
+      print('Error starting scan: $e');
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
       }
-    });
-
-    setState(() {
-      _isScanning = false;
-    });
+    }
   }
 
   void _connectToDevice(BluetoothDevice device) async {
+    if (!mounted) return; // Skip if widget is no longer mounted
+    
     setState(() {
       _connectingDevice = device; // Mark this device as connecting
     });
 
     try {
       await _bluetoothService.connectToDevice(device);
+      
+      if (!mounted) return; // Check again if widget is still mounted
+      
       setState(() {
         _connectedDevice = device;
         _connectingDevice = null; // Device connected, stop showing connecting state
@@ -112,9 +181,11 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       Navigator.pop(context, device);  // Return the device after a successful connection
       print('Connected to device: ${device.platformName}');
     } catch (e) {
-      setState(() {
-        _connectingDevice = null; // Stop showing connecting state in case of error
-      });
+      if (mounted) {
+        setState(() {
+          _connectingDevice = null; // Stop showing connecting state in case of error
+        });
+      }
       print('Unable to connect to the device: $e');
     }
   }
@@ -122,9 +193,12 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   void _disconnectDevice() async {
     if (_connectedDevice != null) {
       await _bluetoothService.disconnectDevice(_connectedDevice!);
-      setState(() {
-        _connectedDevice = null;
-      });
+      
+      if (mounted) {
+        setState(() {
+          _connectedDevice = null;
+        });
+      }
       print('Disconnected from device');
     }
   }
@@ -175,3 +249,4 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     );
   }
 }
+

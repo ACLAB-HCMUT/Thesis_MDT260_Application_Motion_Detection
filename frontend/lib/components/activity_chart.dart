@@ -1,87 +1,136 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:provider/provider.dart';
 
-class ActivityChart extends StatelessWidget {
+import '../l10n/app_localizations.dart';
+import '../models/theme_notifier.dart';
+import '../services/daily_summary_service.dart';
+
+class ActivityChart extends StatefulWidget {
   const ActivityChart({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<ChartData> chartData = [
-      ChartData('Đứng yên:', 5, '100%', Colors.red),
-      ChartData('Đi cầu thang', 4, '100%', Colors.yellow),
-      ChartData('Chạy bộ', 7, '100%', Colors.blue),
-      ChartData('Đi bộ', 8, '100%', Colors.green),
-    ];
+  State<ActivityChart> createState() => _ActivityChartState();
+}
 
-    const double maximumValue = 24; // Giá trị tối đa
+class _ActivityChartState extends State<ActivityChart> {
+  List<ChartData> chartData = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  void fetchData() async {
+    final service = DailySummaryService();
+    final result = await service.getDailySummaryToday();
+
+    if (result.containsKey('data') && result['data']['dailySummary'] != null) {
+      final summary = result['data']['dailySummary'];
+
+      setState(() {
+        chartData = [
+          // Chuyển đổi thành double an toàn bằng cách xử lý từng trường hợp riêng
+          ChartData(AppLocalizations.of(context)!.idle,
+              _safeToDouble(summary['total_idle_time']), Colors.red),
+          ChartData(
+              AppLocalizations.of(context)!.stepping_stairs,
+              _safeToDouble(summary['total_stepping_stair_time']),
+              Colors.yellow),
+          ChartData(AppLocalizations.of(context)!.running,
+              _safeToDouble(summary['total_running_time']), Colors.blue),
+          ChartData(AppLocalizations.of(context)!.walking,
+              _safeToDouble(summary['total_walking_time']), Colors.green),
+        ];
+        isLoading = false;
+      });
+    } else {
+      // No data or error → show all 0s
+      setState(() {
+        chartData = [
+          ChartData(AppLocalizations.of(context)!.idle, 0.0, Colors.red),
+          ChartData(AppLocalizations.of(context)!.stepping_stairs, 0.0,
+              Colors.yellow),
+          ChartData(AppLocalizations.of(context)!.running, 0.0, Colors.blue),
+          ChartData(AppLocalizations.of(context)!.walking, 0.0, Colors.green),
+        ];
+        isLoading = false;
+      });
+    }
+  }
+
+  // Hàm tiện ích để chuyển đổi an toàn sang double
+  double _safeToDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    return 0.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double maximumValue = 8;
 
     return Scaffold(
-      // backgroundColor: Colors.black, // Nền đen để làm nổi bật biểu đồ
+      // backgroundColor: const Color.fromARGB(255, 231, 229, 229),
       body: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            height: 200, // Đảm bảo có kích thước xác định
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Biểu đồ
-                SizedBox(
-                  width: 180, // Điều chỉnh kích thước biểu đồ
-                  height: 180,
-                  child: SfCircularChart(
-                    series: <RadialBarSeries<ChartData, String>>[
-                      RadialBarSeries<ChartData, String>(
-                        dataSource: chartData,
-                        maximumValue: maximumValue,
-                        radius: '90%',
-                        innerRadius: '20%',
-                        cornerStyle: CornerStyle.bothCurve,
-                        trackColor: Colors.grey
-                            .withOpacity(0.2), // Track mặc định nhạt hơn
-                        pointColorMapper: (ChartData data, _) => data.color
-                            .withOpacity(data.y /
-                                maximumValue), // Độ đậm dựa trên giá trị
-                        xValueMapper: (ChartData data, _) => data.x,
-                        yValueMapper: (ChartData data, _) => data.y,
-                      )
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  height: 200,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 180,
+                        height: 180,
+                        child: SfCircularChart(
+                          series: <RadialBarSeries<ChartData, String>>[
+                            RadialBarSeries<ChartData, String>(
+                              dataSource: chartData,
+                              maximumValue: maximumValue,
+                              radius: '90%',
+                              innerRadius: '20%',
+                              cornerStyle: CornerStyle.bothCurve,
+                              trackColor: Colors.grey.withOpacity(0.2),
+                              pointColorMapper: (ChartData data, _) =>
+                                  data.color.withOpacity(data.y / maximumValue),
+                              xValueMapper: (ChartData data, _) => data.label,
+                              yValueMapper: (ChartData data, _) => data.y,
+                            )
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: chartData.map((data) {
+                          return LegendItem(
+                            color: data.color,
+                            text:
+                                '${data.label}: ${data.y.toStringAsFixed(2)} ${AppLocalizations.of(context)!.hours}',
+                          );
+                        }).toList(),
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(
-                  width: 20, // Khoảng cách giữa biểu đồ và chú thích
-                ),
-
-                // Chú thích (legend)
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    LegendItem(color: Colors.red, text: 'Idle: 5 hours'),
-                    LegendItem(
-                        color: Colors.yellow, text: 'Stepping stair: 4 hours'),
-                    LegendItem(color: Colors.blue, text: 'Running: 7 hours'),
-                    LegendItem(color: Colors.green, text: 'Walking: 8 hours'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
 }
 
 class ChartData {
-  ChartData(this.x, this.y, this.text, this.color);
-  final String x;
+  ChartData(this.label, this.y, this.color);
+  final String label;
   final double y;
-  final String text;
   final Color color;
 }
 
-// Widget để hiển thị chú thích
 class LegendItem extends StatelessWidget {
   const LegendItem({
     super.key,
@@ -94,40 +143,33 @@ class LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tách tên và số liệu để xuống dòng
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     final parts = text.split(': ');
-    final title = parts[0]; // Phần tên
-    final value = parts.length > 1 ? parts[1] : ''; // Phần số liệu
+    final title = parts[0];
+    final value = parts.length > 1 ? parts[1] : '';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1.0),
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start, // Căn chỉnh nội dung trên đầu
         children: [
           Container(
             width: 12,
             height: 12,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title, // Hiển thị phần tiêu đề
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              Text(
-                value, // Hiển thị số liệu xuống dòng
-                style: const TextStyle(fontSize: 18, color: Colors.grey),
-              ),
+              Text(title,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: themeNotifier.isDarkMode
+                          ? Colors.white
+                          : Colors.black)),
+              Text(value,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey)),
             ],
           ),
         ],

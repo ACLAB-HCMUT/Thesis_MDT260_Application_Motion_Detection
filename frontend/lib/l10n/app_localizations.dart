@@ -35,15 +35,62 @@ abstract class AppLocalizations {
   ];
 
   /// **'Dashboard' Screen
-  String get dashboard;
+  String get home;
   
   String get hello;
 
   String get notifications;
   
-  String get step_count;
+  String get step_today;
   
+  String get step;  
   
+  String get calories_burned;
+
+  String get all_logs;
+ 
+
+  //Acivity Chart 
+  String get idle;
+
+  String get running;
+
+  String get walking;
+
+  String get stepping_stairs;
+  
+  String get hours;
+
+
+  //Detail Screen
+  String get activity_log;
+
+  String get from;
+  
+  String get to;
+
+  String get total_steps;
+
+  String get calo_burned;
+   
+  String get total_idle_time;
+  
+  String get total_walking_time;
+
+  String get total_running_time;
+
+  String get total_stepping_stair_time;
+
+  String get no_data;
+  
+ //Live Detection Screen 
+  String get live_detection;
+
+  String get live_motion_detection;
+
+  String get stand_still;
+
+
   //Dashboard screen
   String get dart_mode;
 
@@ -61,11 +108,58 @@ abstract class AppLocalizations {
 
   String get connected_device;
   
+  //Settings Screen
+
+  String get disconnect_BLE;
+
+  String get are_you_sure;
+
+  String get cancel;
   
+  String get disconnect;
+
 
   String? get darkMode => null;
 
   String? get selectLanguage => null;
+
+  //User Profile Screen
+  String get profile;
+  
+
+  String get user_profile;
+
+  String get full_name;
+
+  String get email;
+  
+  String get date_of_birth;
+  
+  String get gender;
+
+  String get weight;
+
+  String get height;
+  
+  String get male;
+
+  String get female;
+
+  String get update_personal_infor;
+
+  String get change_infor_login;
+
+  String get log_out;
+
+  String get save;
+
+  String get user_name;
+
+  String get old_password;
+
+  String get new_password;
+
+  String get update;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
