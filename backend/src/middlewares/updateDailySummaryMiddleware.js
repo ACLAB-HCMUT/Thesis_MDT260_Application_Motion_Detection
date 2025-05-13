@@ -36,7 +36,7 @@ const updateDailySummaryMiddleware = async (req, res, next) => {
       }, {})
 
       // Calculate total time spent in each activity type for the date
-      const totalTime = { walking: 0, running: 0, steppingStair: 0, idle: 0 } //Init totalTime in seconds
+      const totalTime = { walking: 0, running: 0, stepping_stair: 0, idle: 0 } //Init totalTime in seconds
       for (const [minute, activitiesInMinute] of Object.entries(activitiesByMinute)) {
         // Count occurrences of each activity in the minute
         const activityCounts = activitiesInMinute.reduce((counts, activity) => {
@@ -68,7 +68,7 @@ const updateDailySummaryMiddleware = async (req, res, next) => {
         totalSteps, {
           totalWalkingTime: totalTime.walking / 3600, // Convert seconds to hours
           totalRunningTime: totalTime.running / 3600,
-          totalSteppingStairTime: totalTime.steppingStair / 3600,
+          totalSteppingStairTime: totalTime.stepping_stair / 3600,
           totalIdleTime: totalTime.idle / 3600
         })
     }
