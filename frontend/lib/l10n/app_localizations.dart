@@ -123,6 +123,8 @@ abstract class AppLocalizations {
 
   String? get selectLanguage => null;
 
+  String get average_per_day;
+
   //User Profile Screen
   String get profile;
   
@@ -160,6 +162,16 @@ abstract class AppLocalizations {
   String get new_password;
 
   String get update;
+
+  String get ble_connection;
+
+  String get scan_for_devices;
+
+  String get scanning;
+
+
+  String get show_error;
+
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -193,3 +205,4 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'that was used.'
   );
 }
+

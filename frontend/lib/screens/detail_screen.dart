@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
-import '../providers/app_localization_provider.dart';
-import '../services/daily_summary_service.dart'; // Import the service to call the API
+import '../models/theme_notifier.dart';
+import '../services/daily_summary_service.dart';
 
 class DetailScreen extends StatefulWidget {
   const DetailScreen({super.key});
@@ -30,99 +31,87 @@ class _DetailScreenState extends State<DetailScreen> {
   /// **Fetch Data by Date Range**
   Future<void> fetchDataByDateRange() async {
     setState(() {
-      isLoading = true; // Set loading state to true before fetching
+      isLoading = true;
+      // Đặt lại tất cả chỉ số về 0 ngay khi bắt đầu fetch
+      totalSteps = 0;
+      totalCalories = 0.0;
+      totalIdleTime = 0.0;
+      totalWalkingTime = 0.0;
+      totalRunningTime = 0.0;
+      totalSteppingStairTime = 0.0;
+      filteredData = [];
     });
 
     try {
       final service = DailySummaryService();
       final result = await service.getDailySummaryByDateRange(
-          DateFormat('yyyy-MM-dd').format(startDate),
-          DateFormat('yyyy-MM-dd').format(endDate));
+        DateFormat('yyyy-MM-dd').format(startDate),
+        DateFormat('yyyy-MM-dd').format(endDate),
+      );
 
-      print("API result structure: ${result.keys}");
-      if (result.containsKey('data')) {
-        print("Data structure: ${result['data']?.keys}");
-      }
-
-      if (result.containsKey('data') &&
-          result['data'] != null &&
-          result['data']['summary'] != null) {
+      if (result.containsKey('data') && result['data']['summary'] != null) {
         final summary = result['data']['summary'];
-        print("Summary data: $summary");
 
-        // Calculate total days between start and end date
+        if (summary.isEmpty) {
+          // Không có dữ liệu -> Các chỉ số vẫn bằng 0 như trên
+          setState(() {
+            filteredData = [
+              ActivityData(AppLocalizations.of(context)!.no_data, 0, 0.0, 0.0,
+                  0.0, 0.0, 0.0),
+            ];
+            isLoading = false;
+          });
+          return;
+        }
+
         int totalDays = endDate.difference(startDate).inDays + 1;
 
-        // Lấy dữ liệu từ summary và cập nhật các biến tổng
         setState(() {
-          totalSteps =
-              (summary['total_steps'] ?? 0) is int ? summary['total_steps'] : 0;
-          totalCalories = (summary['total_calories'] ?? 0.0) is int
-              ? (summary['total_calories'] as int).toDouble()
-              : (summary['total_calories'] ?? 0.0);
-          totalIdleTime = (summary['total_idle_time'] ?? 0.0) is int
-              ? (summary['total_idle_time'] as int).toDouble()
-              : (summary['total_idle_time'] ?? 0.0);
-          totalWalkingTime = (summary['total_walking_time'] ?? 0.0) is int
-              ? (summary['total_walking_time'] as int).toDouble()
-              : (summary['total_walking_time'] ?? 0.0);
-          totalRunningTime = (summary['total_running_time'] ?? 0.0) is int
-              ? (summary['total_running_time'] as int).toDouble()
-              : (summary['total_running_time'] ?? 0.0);
+          totalSteps = summary['total_steps'] ?? 0;
+          totalCalories = _safeConvertToDouble(summary['total_calories']);
+          totalIdleTime = _safeConvertToDouble(summary['total_idle_time']);
+          totalWalkingTime =
+              _safeConvertToDouble(summary['total_walking_time']);
+          totalRunningTime =
+              _safeConvertToDouble(summary['total_running_time']);
           totalSteppingStairTime =
-              (summary['total_stepping_stair_time'] ?? 0.0) is int
-                  ? (summary['total_stepping_stair_time'] as int).toDouble()
-                  : (summary['total_stepping_stair_time'] ?? 0.0);
+              _safeConvertToDouble(summary['total_stepping_stair_time']);
         });
 
-        // Chia các thời gian tổng cho số ngày để có thời gian trung bình mỗi ngày
         double averageIdleTime = totalIdleTime / totalDays;
         double averageWalkingTime = totalWalkingTime / totalDays;
         double averageRunningTime = totalRunningTime / totalDays;
         double averageSteppingStairTime = totalSteppingStairTime / totalDays;
 
-        print("Average Idle Time per Day: $averageIdleTime");
-        print("Average Walking Time per Day: $averageWalkingTime");
-        print("Average Running Time per Day: $averageRunningTime");
-        print("Average Stepping Stair Time per Day: $averageSteppingStairTime");
-
-        // Create new data to display for chart without the need for specific dates
-        List<ActivityData> newData = [];
-        newData.add(ActivityData(
-          'Total',
-          totalSteps ~/ totalDays, // Divide total steps by total days
-          totalCalories / totalDays, // Divide total calories by total days
-          averageIdleTime, // Daily average idle time
-          averageWalkingTime, // Daily average walking time
-          averageSteppingStairTime, // Daily average stepping stair time
-          averageRunningTime, // Daily average running time
-        ));
-
-        // Handle case where no data was retrieved (use default zero values)
-        if (newData.isEmpty) {
-          newData = [
-            ActivityData('No Data', 0, 0.0, 0.0, 0.0, 0.0, 0.0),
-          ];
-        }
-
         setState(() {
-          filteredData = newData;
+          filteredData = [
+            ActivityData(
+              AppLocalizations.of(context)!.average_per_day,
+              totalSteps ~/ totalDays,
+              totalCalories / totalDays,
+              averageIdleTime,
+              averageWalkingTime,
+              averageSteppingStairTime,
+              averageRunningTime,
+            )
+          ];
           isLoading = false;
         });
       } else {
-        print("No valid data returned from API");
+        // Khi không có 'summary' -> reset giá trị về 0 và hiển thị "Không có dữ liệu"
         setState(() {
           filteredData = [
-            ActivityData(AppLocalizations.of(context)!.no_data, 0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            ActivityData(AppLocalizations.of(context)!.no_data, 0, 0.0, 0.0,
+                0.0, 0.0, 0.0),
           ];
           isLoading = false;
         });
       }
     } catch (e) {
-      print("Error fetching data: $e");
       setState(() {
         filteredData = [
-          ActivityData(AppLocalizations.of(context)!.no_data, 0, 0.0, 0.0, 0.0, 0.0, 0.0),
+          ActivityData(AppLocalizations.of(context)!.no_data, 0, 0.0, 0.0, 0.0,
+              0.0, 0.0),
         ];
         isLoading = false;
       });
@@ -152,8 +141,20 @@ class _DetailScreenState extends State<DetailScreen> {
     );
 
     if (picked != null) {
+      // Kiểm tra xem ngày được chọn có hợp lệ không
+      if (!isStart && picked.isBefore(startDate)) {
+        // Hiển thị thông báo lỗi nếu endDate trước startDate
+        _showTimeOrderErrorDialog(context);
+        return;
+      }
+
       setState(() {
         if (isStart) {
+          // Nếu ngày bắt đầu mới lớn hơn ngày kết thúc hiện tại
+          if (picked.isAfter(endDate)) {
+            _showTimeOrderErrorDialog(context);
+            return;
+          }
           startDate = picked;
         } else {
           endDate = picked;
@@ -163,14 +164,64 @@ class _DetailScreenState extends State<DetailScreen> {
     }
   }
 
+  // Hiển thị thông báo lỗi khi thời gian không hợp lệ
+  void _showTimeOrderErrorDialog(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor:
+              themeNotifier.isDarkMode ? Colors.grey[850] : Colors.grey[200],
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          alignment: Alignment.center,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.show_error,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color:
+                        themeNotifier.isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      "OK",
+                      style: TextStyle(color: Colors.blueAccent),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.activity_log),
-        backgroundColor: Colors.black,
+        backgroundColor: themeNotifier.isDarkMode ? Colors.black : Colors.white,
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: themeNotifier.isDarkMode ? Colors.black : Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -182,12 +233,16 @@ class _DetailScreenState extends State<DetailScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child:
-                            _datePickerButton(context, AppLocalizations.of(context)!.from, startDate, true),
+                        child: _datePickerButton(
+                            context,
+                            AppLocalizations.of(context)!.from,
+                            startDate,
+                            true),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: _datePickerButton(context, AppLocalizations.of(context)!.to, endDate, false),
+                        child: _datePickerButton(context,
+                            AppLocalizations.of(context)!.to, endDate, false),
                       ),
                     ],
                   ),
@@ -215,16 +270,24 @@ class _DetailScreenState extends State<DetailScreen> {
                           ),
                         )
                       : SfCartesianChart(
-                          backgroundColor: Colors.black,
+                          backgroundColor: themeNotifier.isDarkMode
+                              ? Colors.black
+                              : Colors.white,
                           primaryXAxis: CategoryAxis(
-                            labelStyle: const TextStyle(color: Colors.white),
+                            labelStyle: TextStyle(
+                                color: themeNotifier.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black),
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0),
                             axisLine:
                                 const AxisLine(width: 1, color: Colors.white30),
                           ),
                           primaryYAxis: NumericAxis(
-                            labelStyle: const TextStyle(color: Colors.white),
+                            labelStyle: TextStyle(
+                                color: themeNotifier.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black),
                             minimum: 0,
                             maximum: 8,
                           ),
@@ -250,7 +313,8 @@ class _DetailScreenState extends State<DetailScreen> {
                               color: Colors.green,
                             ),
                             ColumnSeries<ActivityData, String>(
-                              name: AppLocalizations.of(context)!.stepping_stairs,
+                              name:
+                                  AppLocalizations.of(context)!.stepping_stairs,
                               dataSource: filteredData,
                               xValueMapper: (ActivityData data, _) => data.day,
                               yValueMapper: (ActivityData data, _) => data
@@ -276,10 +340,15 @@ class _DetailScreenState extends State<DetailScreen> {
                     spacing: 20,
                     runSpacing: 10,
                     children: [
-                      _activityLabel(AppLocalizations.of(context)!.idle, Colors.red),
-                      _activityLabel(AppLocalizations.of(context)!.walking, Colors.green),
-                      _activityLabel(AppLocalizations.of(context)!.stepping_stairs, Colors.yellow),
-                      _activityLabel(AppLocalizations.of(context)!.running, Colors.blue),
+                      _activityLabel(
+                          AppLocalizations.of(context)!.idle, Colors.red),
+                      _activityLabel(
+                          AppLocalizations.of(context)!.walking, Colors.green),
+                      _activityLabel(
+                          AppLocalizations.of(context)!.stepping_stairs,
+                          Colors.yellow),
+                      _activityLabel(
+                          AppLocalizations.of(context)!.running, Colors.blue),
                     ],
                   ),
                 ),
@@ -291,22 +360,30 @@ class _DetailScreenState extends State<DetailScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[900],
+                      color: themeNotifier.isDarkMode
+                          ? Colors.grey[900]
+                          : const Color.fromARGB(255, 224, 204, 204),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _statisticRow(AppLocalizations.of(context)!.total_steps, "$totalSteps ${AppLocalizations.of(context)!.step}"),
+                        _statisticRow(AppLocalizations.of(context)!.total_steps,
+                            "$totalSteps ${AppLocalizations.of(context)!.step}"),
                         _statisticRow(AppLocalizations.of(context)!.calo_burned,
                             "${totalCalories.toStringAsFixed(1)} kcal"),
-                        _statisticRow(AppLocalizations.of(context)!.total_idle_time,
+                        _statisticRow(
+                            AppLocalizations.of(context)!.total_idle_time,
                             "${totalIdleTime.toStringAsFixed(1)} ${AppLocalizations.of(context)!.hours}"),
-                        _statisticRow(AppLocalizations.of(context)!.total_walking_time,
+                        _statisticRow(
+                            AppLocalizations.of(context)!.total_walking_time,
                             "${totalWalkingTime.toStringAsFixed(1)} ${AppLocalizations.of(context)!.hours}"),
-                        _statisticRow(AppLocalizations.of(context)!.total_running_time,
+                        _statisticRow(
+                            AppLocalizations.of(context)!.total_running_time,
                             "${totalRunningTime.toStringAsFixed(1)} ${AppLocalizations.of(context)!.hours}"),
-                        _statisticRow(AppLocalizations.of(context)!.total_stepping_stair_time,
+                        _statisticRow(
+                            AppLocalizations.of(context)!
+                                .total_stepping_stair_time,
                             "${totalSteppingStairTime.toStringAsFixed(1)} ${AppLocalizations.of(context)!.hours}"),
                       ],
                     ),
@@ -320,20 +397,28 @@ class _DetailScreenState extends State<DetailScreen> {
   /// **Date Picker Button**
   Widget _datePickerButton(
       BuildContext context, String label, DateTime date, bool isStart) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return GestureDetector(
       onTap: () => _selectDate(context, isStart),
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey[800],
+          color: themeNotifier.isDarkMode
+              ? Colors.grey[900]
+              : const Color.fromARGB(255, 224, 204, 204),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today, color: Colors.white, size: 14),
+            Icon(Icons.calendar_today,
+                color: themeNotifier.isDarkMode ? Colors.white : Colors.black,
+                size: 14),
             const SizedBox(width: 5),
             Text("$label: ${DateFormat("dd/MM/yyyy").format(date)}",
-                style: const TextStyle(color: Colors.white, fontSize: 12)),
+                style: TextStyle(
+                    color:
+                        themeNotifier.isDarkMode ? Colors.white : Colors.black,
+                    fontSize: 12)),
           ],
         ),
       ),
@@ -342,16 +427,19 @@ class _DetailScreenState extends State<DetailScreen> {
 
   /// **Display Statistic Row**
   Widget _statisticRow(String label, String value) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 14)),
+              style: TextStyle(
+                  color: themeNotifier.isDarkMode ? Colors.white : Colors.black,
+                  fontSize: 14)),
           Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: themeNotifier.isDarkMode ? Colors.white : Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold)),
         ],
@@ -376,18 +464,24 @@ class _DetailScreenState extends State<DetailScreen> {
 
   /// **Activity Labels (2 per row)**
   Widget _activityLabel(String name, Color color) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return Container(
       width: MediaQuery.of(context).size.width * 0.4,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[800],
+        color: themeNotifier.isDarkMode
+            ? Colors.grey[900]
+            : const Color.fromARGB(255, 224, 204, 204),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
           Icon(Icons.circle, color: color, size: 11),
           const SizedBox(width: 8),
-          Text(name, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          Text(name,
+              style: TextStyle(
+                  color: themeNotifier.isDarkMode ? Colors.white : Colors.black,
+                  fontSize: 12)),
         ],
       ),
     );

@@ -11,7 +11,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get home => 'Trang chủ';
 
   @override
-  String get hello => 'Xin chào!';
+  String get hello => 'Xin chào';
 
   @override
   String get notifications => 'Thông báo';
@@ -175,4 +175,19 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get update => 'Cập nhật';
+
+  @override
+  String get average_per_day => 'Trung bình mỗi ngày';
+
+  @override
+  String get ble_connection => 'Kết nối Bluetooth';
+
+  @override
+  String get scan_for_devices => 'Quét thiết bị';
+
+  @override
+  String get scanning => 'Đang quét...';
+
+  @override
+  String get show_error => 'Thời gian kết thúc phải sau thời gian bắt đầu.';
 }

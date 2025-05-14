@@ -11,7 +11,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home => 'Home';
 
   @override
-  String get hello => 'Hello!';
+  String get hello => 'Hello';
 
   @override
   String get notifications => 'Notifications';
@@ -176,4 +176,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get update => 'Update';
+
+  @override
+  String get average_per_day => 'Average per day';
+
+  @override
+  String get ble_connection => 'Bluetooth Connection';
+
+  @override
+  String get scan_for_devices => 'Scan for Devices';
+
+  @override
+  String get scanning => 'Scanning...';
+
+  @override
+  String get show_error => 'The end time must be after the start time.';
 }

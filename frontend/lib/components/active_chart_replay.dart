@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as dart_ui;
 import 'package:intl/intl.dart';
-import '../services/daily_summary_service.dart'; // Đảm bảo đúng đường dẫn file service của bạn
+
+import '../l10n/app_localizations.dart';
+import '../services/daily_summary_service.dart';
 
 class ActivityChartReplay extends StatefulWidget {
   const ActivityChartReplay({super.key});
@@ -12,51 +14,122 @@ class ActivityChartReplay extends StatefulWidget {
 
 class _ActivityChartReplayState extends State<ActivityChartReplay> {
   List<Map<String, dynamic>> _activityData = [];
+  bool _isLoading = true;
+
+  // Thêm một biến để theo dõi việc fetch dữ liệu
+  bool _isFetchCancelled = false;
 
   @override
   void initState() {
     super.initState();
-    fetchActivityData();
+    fetchData();
   }
 
-  Future<void> fetchActivityData() async {
-    final data =
-        await DailySummaryService().getDailySummaryToday(); // Gọi API của bạn
-    if (data['error'] == null) {
-      final List<dynamic> raw = data['data']?['activities'] ?? [];
+  @override
+  void dispose() {
+    // Đánh dấu fetch bị hủy để ngăn chặn setState sau khi dispose
+    _isFetchCancelled = true;
+    super.dispose();
+  }
 
-      // Sắp xếp dữ liệu theo thời gian (nếu cần)
-      raw.sort((a, b) => DateTime.parse(a['timestamp'])
-          .compareTo(DateTime.parse(b['timestamp'])));
+  Future<void> fetchData() async {
+    try {
+      // Đợi một khoảng thời gian ngắn để tránh lỗi nếu widget bị dispose ngay lập tức
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      List<Map<String, dynamic>> parsed = [];
-      DateTime? lastTimestamp;
+      // Kiểm tra xem fetch đã bị hủy chưa
+      if (_isFetchCancelled) return;
 
-      for (var item in raw) {
-        try {
+      final data = await DailySummaryService().getDailySummaryToday();
+
+      // print(data); // Log dữ liệu API
+
+      if (_isFetchCancelled) return;
+
+      if (data['error'] == null) {
+        final List<dynamic> raw = data['data']?['activities'] ?? [];
+
+        // Sắp xếp dữ liệu theo thời gian
+        raw.sort((a, b) => DateTime.parse(a['timestamp'])
+            .compareTo(DateTime.parse(b['timestamp'])));
+
+        List<Map<String, dynamic>> parsed = [];
+        DateTime?
+            lastAddedTimestamp; // Lưu lại timestamp của hoạt động cuối cùng được thêm vào
+
+        // In tất cả dữ liệu trước khi lọc
+        // print("All Activities Before Filtering:");
+        raw.forEach((item) {
           DateTime timestamp = DateTime.parse(item['timestamp']);
+          final time = DateFormat('HH:mm').format(timestamp);
+          // print('Activity: ${item['activity']}, Timestamp: $time');
+        });
 
-          // Nếu lastTimestamp không phải là null và cách nhau ít nhất 2 phút
-          if (lastTimestamp == null ||
-              timestamp.difference(lastTimestamp).inMinutes >= 2) {
-            final time = DateFormat('HH:mm').format(timestamp);
-            parsed.add({
-              'time': time,
-              'activity': item['activity'],
-            });
+        // Luôn thêm hoạt động đầu tiên
+        if (raw.isNotEmpty) {
+          var firstItem = raw.first;
+          DateTime timestamp = DateTime.parse(firstItem['timestamp']);
+          final time = DateFormat('HH:mm').format(timestamp);
+          parsed.add({
+            'time': time,
+            'activity': firstItem['activity'],
+          });
+          lastAddedTimestamp = timestamp;
+          // print(
+          //     'Added First Activity: ${firstItem['activity']}, Timestamp: $time');
+        }
+
+        // Duyệt qua các hoạt động còn lại
+        for (int i = 1; i < raw.length; i++) {
+          try {
+            var item = raw[i];
+            DateTime timestamp = DateTime.parse(item['timestamp']);
+
+            // Chỉ thêm hoạt động nếu nó cách hoạt động cuối cùng được thêm vào ít nhất 2 phút
+            if (lastAddedTimestamp != null &&
+                timestamp.difference(lastAddedTimestamp).inMinutes >= 2) {
+              final time = DateFormat('HH:mm').format(timestamp);
+              parsed.add({
+                'time': time,
+                'activity': item['activity'],
+              });
+              lastAddedTimestamp = timestamp; // Cập nhật timestamp cuối cùng
+
+              // In ra các hoạt động đã được thêm vào
+              // print('Added Activity: ${item['activity']}, Timestamp: $time');
+            }
+          } catch (e) {
+            // Nếu gặp lỗi, bỏ qua dữ liệu không hợp lệ
+            print('Error parsing data: $e');
           }
+        }
 
-          // Cập nhật lastTimestamp
-          lastTimestamp = timestamp;
-        } catch (e) {
-          // Nếu gặp lỗi, bỏ qua dữ liệu không hợp lệ
-          print('Error parsing data: $e');
+        // In tổng số hoạt động sau khi lọc
+        // print('Total activities after filtering: ${parsed.length}');
+
+        // Kiểm tra mounted và không bị hủy trước khi gọi setState
+        if (mounted && !_isFetchCancelled) {
+          setState(() {
+            _activityData = parsed;
+            _isLoading = false;
+          });
+        }
+      } else {
+        // Xử lý trường hợp có lỗi từ API
+        if (mounted && !_isFetchCancelled) {
+          setState(() {
+            _isLoading = false;
+          });
         }
       }
-
-      setState(() {
-        _activityData = parsed;
-      });
+    } catch (e) {
+      // Xử lý ngoại lệ
+      print('Fetch data error: $e');
+      if (mounted && !_isFetchCancelled) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -64,21 +137,30 @@ class _ActivityChartReplayState extends State<ActivityChartReplay> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: CustomPaint(
-          size: Size(1500, 300),
-          painter: ActionTimelinePainter(data: _activityData),
-        ),
-      ),
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _activityData.isEmpty
+              ? Center(
+                  child: Text(
+                    AppLocalizations.of(context)!.no_data,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: CustomPaint(
+                    size:  Size(_activityData.length * 60.0 + 50, 300),
+                    painter: ActivityChartPainter(data: _activityData),
+                  ),
+                ),
     );
   }
 }
 
-class ActionTimelinePainter extends CustomPainter {
+class ActivityChartPainter extends CustomPainter {
   final List<Map<String, dynamic>> data;
 
-  ActionTimelinePainter({required this.data});
+  ActivityChartPainter({required this.data});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -87,8 +169,13 @@ class ActionTimelinePainter extends CustomPainter {
       ..strokeWidth = 8;
 
     final double marginLeft = 50;
-    final double timeStep =
-        (size.width - marginLeft) / (data.isEmpty ? 1 : data.length); // Phân phối đều
+    final double totalWidth = size.width - marginLeft;
+
+    // Giới hạn chiều dài tối đa của mỗi đoạn thẳng
+    final double fixedBarWidth = 60;
+
+    // Điều chỉnh lại timeStep sao cho không phụ thuộc vào số lượng dữ liệu
+    final double timeStep = fixedBarWidth;
 
     // Màu sắc của các hành động
     Map<String, Color> activityColors = {
@@ -120,8 +207,8 @@ class ActionTimelinePainter extends CustomPainter {
         style: TextStyle(color: Colors.grey, fontSize: 18),
       );
       textPainter.layout();
-      textPainter.paint(
-          canvas, Offset(size.width / 2 - textPainter.width / 2, size.height / 2));
+      textPainter.paint(canvas,
+          Offset(size.width / 2 - textPainter.width / 2, size.height / 2));
     } else {
       // Vẽ dữ liệu bình thường khi có dữ liệu
       for (int i = 0; i < data.length; i++) {
@@ -133,16 +220,19 @@ class ActionTimelinePainter extends CustomPainter {
               color: Color.fromARGB(255, 228, 219, 219), fontSize: 12),
         );
         textPainter.layout();
-        double xPosition = marginLeft + (i * timeStep); // Phân phối đều
-        textPainter.paint(
-            canvas, Offset(xPosition - textPainter.width / 2, size.height - 30));
+
+        double xPosition =
+            marginLeft + (i * timeStep); // Vị trí x của đoạn thẳng
+        textPainter.paint(canvas,
+            Offset(xPosition - textPainter.width / 2, size.height - 30));
 
         // Vẽ hành động (đoạn thẳng) khi có dữ liệu
         paint.color =
             activityColors[activity] ?? Colors.grey; // Màu sắc cho hành động
         canvas.drawLine(
           Offset(xPosition, size.height - 40),
-          Offset(xPosition + timeStep, size.height - 40),
+          Offset(xPosition + timeStep,
+              size.height - 40), // Vẽ các đoạn thẳng có chiều dài bằng nhau
           paint,
         );
 
@@ -193,7 +283,7 @@ class ActionTimelinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ActionTimelinePainter oldDelegate) {
+  bool shouldRepaint(covariant ActivityChartPainter oldDelegate) {
     return oldDelegate.data != data;
   }
 }

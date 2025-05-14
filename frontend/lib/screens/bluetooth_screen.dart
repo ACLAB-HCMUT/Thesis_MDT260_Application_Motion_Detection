@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../l10n/app_localizations.dart';
 import '../services/bluetooth_service.dart' as bt_service;
 import '../components/device_list_tile.dart';
 import 'dart:async'; // Add this import for StreamSubscription
@@ -207,7 +209,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bluetooth Connection"),
+        title: Text(AppLocalizations.of(context)!.ble_connection),
       ),
       body: Center(
         child: Column(
@@ -226,7 +228,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
             ] else ...[
               ElevatedButton(
                 onPressed: _startScan,
-                child: Text(_isScanning ? "Scanning..." : "Scan for Devices"),
+                child: Text(_isScanning ? AppLocalizations.of(context)!.scanning : AppLocalizations.of(context)!.scan_for_devices),
               ),
               const SizedBox(height: 20),
               Expanded(
