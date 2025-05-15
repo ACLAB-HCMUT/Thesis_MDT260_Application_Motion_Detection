@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'bluetooth_screen.dart';
 import 'dart:async';
+
+import '../l10n/app_localizations.dart';
+import '../services/ble_background_service.dart';
+import 'bluetooth_screen.dart';
 
 class LiveDetectionScreen extends StatefulWidget {
   const LiveDetectionScreen({super.key});
@@ -10,209 +13,172 @@ class LiveDetectionScreen extends StatefulWidget {
   _LiveDetectionScreenState createState() => _LiveDetectionScreenState();
 }
 
-class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
-  BluetoothDevice? _connectedDevice;
-  String _currentActivity = 'Stand still'; // Mặc định là Stand still
-  StreamSubscription<List<int>>? _notificationSubscription;
-  Timer? _standStillTimer; // Timer để kiểm tra trạng thái Stand still
-  bool _isLive =
-      false; // Biến trạng thái để kiểm tra liệu đang nhận dữ liệu hay không
+class _LiveDetectionScreenState extends State<LiveDetectionScreen> with WidgetsBindingObserver {
+  // Sử dụng service thay vì các thuộc tính riêng lẻ
+  final BluetoothBackgroundService _bleService = BluetoothBackgroundService();
+  
+  // State cho UI
+  String _currentActivity = '';
+  bool _isLive = false;
+  bool _isFrozen = false; // Thêm biến để theo dõi trạng thái đóng băng của activity
+  
+  // Các Subscriptions
+  StreamSubscription? _activitySubscription;
+  StreamSubscription? _connectionSubscription;
+  StreamSubscription? _liveStatusSubscription;
 
   @override
   void initState() {
     super.initState();
-    _checkBluetoothConnection();
+    
+    // Đăng ký theo dõi vòng đời ứng dụng
+    WidgetsBinding.instance.removeObserver(this);
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _currentActivity = AppLocalizations.of(context)!.stand_still;
+      });
+      
+      // Đăng ký lắng nghe các sự kiện
+      _setupEventListeners();
+      
+      // Kiểm tra trạng thái kết nối ban đầu
+      _bleService.checkBluetoothConnection();
+    });
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateUIState();
+  }
+
+  void _setupEventListeners() {
+    // Lắng nghe sự thay đổi hoạt động
+    _activitySubscription = _bleService.activityStream.listen((activity) {
+      // Chỉ cập nhật UI khi không trong trạng thái đóng băng
+      if (!_isFrozen && mounted) {
+        setState(() {
+          if (activity == "running") {
+            _currentActivity = AppLocalizations.of(context)!.running;
+          } else if (activity == "idle") {
+            _currentActivity = AppLocalizations.of(context)!.stand_still;
+          } else if (activity == "walking") {
+            _currentActivity = AppLocalizations.of(context)!.walking;
+          } else if (activity == "stepping_stair") {
+            _currentActivity = AppLocalizations.of(context)!.stepping_stairs;
+          } else {
+            _currentActivity = AppLocalizations.of(context)!.stand_still;
+          }
+        });
+      }
+    });
+    
+    // Lắng nghe trạng thái kết nối
+    _connectionSubscription = _bleService.connectionStream.listen((connected) {
+      if (!connected && mounted) {
+        setState(() {
+          _isLive = false;
+          // Nếu mất kết nối, không đóng băng trạng thái
+          _isFrozen = false; 
+        });
+      }
+    });
+    
+    // Lắng nghe trạng thái live detection
+    _liveStatusSubscription = _bleService.liveStatusStream.listen((isLive) {
+      if (mounted) {
+        setState(() {
+          _isLive = isLive;
+          // Khi bắt đầu lại live detection, bỏ trạng thái đóng băng
+          if (isLive) {
+            _isFrozen = false;
+          }
+        });
+      }
+    });
+  }
+  
+  void _updateUIState() {
+    setState(() {
+      _isLive = _bleService.isLive;
+      // Nếu không trong trạng thái live, đặt _isFrozen = false để chuẩn bị cho lần tiếp theo
+      if (!_isLive) {
+        _isFrozen = false;
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Khi ứng dụng vào background hoặc resume từ background
+    if (state == AppLifecycleState.resumed) {
+      // Cập nhật UI khi quay lại ứng dụng
+      _bleService.checkBluetoothConnection();
+      _updateUIState();
+    }
   }
 
   @override
   void dispose() {
-    _notificationSubscription?.cancel();
-    _standStillTimer?.cancel(); // Hủy timer khi thoát
+    // Hủy đăng ký theo dõi vòng đời ứng dụng
+   WidgetsBinding.instance.removeObserver(this);
+    
+    // Hủy các subscription
+    _activitySubscription?.cancel();
+    _connectionSubscription?.cancel();
+    _liveStatusSubscription?.cancel();
+    
     super.dispose();
   }
 
-  Future<void> _disconnectDevice() async {
-    if (_connectedDevice != null) {
-      try {
-        await _connectedDevice!.disconnect();
-        print('Device disconnected');
-      } catch (e) {
-        print('Error disconnecting device: $e');
-      }
-    }
-  }
-
-  Future<void> _checkBluetoothConnection() async {
-    try {
-      setState(() {});
-
-      List<BluetoothDevice> devices = await FlutterBluePlus.connectedDevices;
-      if (devices.isNotEmpty) {
-        setState(() {
-          _connectedDevice = devices.first;
-        });
-        _setupNotifications();
-      } else {
-        setState(() {});
-      }
-    } catch (e) {
-      print('Error retrieving connected devices: $e');
-      setState(() {});
-    } finally {
-      setState(() {});
-    }
-  }
-
+  // Bắt đầu live detection
   Future<void> _startLiveDetection() async {
-    if (_connectedDevice == null) {
-      print('Device not connected, navigating to BluetoothScreen.');
+    if (_bleService.connectedDevice == null) {
       final selectedDevice = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const BluetoothScreen()),
       );
+
+      // Check if still mounted after returning from navigation
+      if (!mounted) return;
+
       if (selectedDevice != null && selectedDevice is BluetoothDevice) {
-        setState(() {
-          _connectedDevice = selectedDevice;
-        });
-        _setupNotifications();
-      } else {
-        setState(() {});
+        await _bleService.connectToDevice(selectedDevice);
+        await _bleService.startLiveDetection();
       }
     } else {
-      // If already connected, ensure notifications are set up
-      _setupNotifications();
+      await _bleService.startLiveDetection();
     }
   }
 
-  Future<void> _setupNotifications() async {
-    if (_connectedDevice == null) return;
-
-    try {
-      setState(() {});
-
-      List<BluetoothService> services =
-          await _connectedDevice!.discoverServices();
-      for (BluetoothService service in services) {
-        for (BluetoothCharacteristic characteristic
-            in service.characteristics) {
-          if (characteristic.properties.notify) {
-            await characteristic.setNotifyValue(true);
-            print('Subscribed to characteristic: ${characteristic.uuid}');
-
-            // Cancel any existing subscription
-            await _notificationSubscription?.cancel();
-
-            // Listen to the characteristic's value stream
-            _notificationSubscription =
-                characteristic.lastValueStream.listen((value) {
-              if (mounted) {
-                _handleReceivedData(value);
-              }
-            });
-            setState(() {});
-          }
-        }
-      }
-    } catch (e) {
-      print('Error setting up notifications: $e');
-      setState(() {});
-    }
-  }
-
-  // // Phát hiện và lấy thông tin dữ liệu từ bộ nhớ cục bộ của thiết bị
-  // Future<void> _getDeviceServices(BluetoothDevice device) async {
-  //   try {
-  //     // Lấy danh sách các dịch vụ của thiết bị
-  //     List<BluetoothService> services = await device.discoverServices();
-  //     for (BluetoothService service in services) {
-  //       print('Service UUID: ${service.uuid}');
-  //       // Lấy đặc tính (Characteristic) từ mỗi dịch vụ
-  //       for (BluetoothCharacteristic characteristic
-  //           in service.characteristics) {
-  //         print('Characteristic UUID: ${characteristic.uuid}');
-
-  //         // Nếu có đặc tính nào lưu trữ dữ liệu (data) trong bộ nhớ cục bộ
-  //         if (characteristic.uuid.toString() == 'UUID_CUA_DAC_TINH') {
-  //           // Thay 'UUID_CUA_DAC_TINH' bằng UUID của đặc tính bạn cần
-  //           List<int> value =
-  //               await characteristic.read(); // Đọc giá trị từ đặc tính
-  //           print('Dữ liệu từ bộ nhớ cục bộ: $value');
-  //           _handleReceivedData(value); // Xử lý dữ liệu nhận được
-  //         }
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print('Lỗi khi lấy dịch vụ và đặc tính: $e');
-  //   }
-  // }
-
-  void _handleReceivedData(List<int> value) {
-    final timestamp = DateTime.now().toIso8601String();
-    print('[$timestamp] Received data: $value');
-
-    final newActivity = _parseActivityFromCharacteristic(value);
-    if (newActivity != _currentActivity) {
-      setState(() {
-        _currentActivity = newActivity;
-      });
-    }
-
-    // Đảm bảo khi nhận dữ liệu, _isLive được set là true
-    if (!_isLive) {
-      setState(() {
-        _isLive = true; // Đánh dấu là đang nhận dữ liệu
-      });
-    }
-
-    // Reset timer mỗi khi nhận được dữ liệu mới
-    _resetStandStillTimer();
-  }
-
-  String _parseActivityFromCharacteristic(List<int> value) {
-    String data = String.fromCharCodes(value).trim().toLowerCase();
-    switch (data) {
-      case 'walking':
-        return 'Walking';
-      case 'running':
-        return 'Running';
-      case 'stair_climbing':
-        return 'Going Stairs';
-      default:
-        return 'Stand still';
-    }
-  }
-
-  // Hàm reset timer mỗi khi nhận được dữ liệu mới
-  void _resetStandStillTimer() {
-    _standStillTimer?.cancel(); // Hủy timer cũ
-    _standStillTimer = Timer(const Duration(seconds: 10), () {
-      setState(() {
-        _currentActivity =
-            'Stand still'; // Sau 5s không nhận được dữ liệu sẽ tự động hiển thị Stand still
-        _isLive =
-            false; // Nếu sau 5s không nhận dữ liệu thì dừng live detection
-      });
-    });
-  }
-
+  // Dừng live detection
   void _stopLiveDetection() {
+    // Đặt cờ đóng băng để giữ trạng thái activity hiện tại
     setState(() {
-      _isLive = false;
-      _currentActivity = 'Stand still'; // Set lại hoạt động khi dừng
+      _isFrozen = true;
     });
-    _notificationSubscription?.cancel();
-    print('Live detection stopped');
+    _bleService.stopLiveDetection();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Live Detection'),
+        title: Text(
+          AppLocalizations.of(context)!.live_detection,
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.bluetooth_disabled),
-            onPressed: _disconnectDevice,
+            icon: const Icon(
+              Icons.bluetooth_disabled,
+              size: 28,
+            ),
+            onPressed: () => _bleService.disconnectDevice(),
           ),
         ],
       ),
@@ -226,10 +192,9 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Live Motion Detection',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    Text(
+                      AppLocalizations.of(context)!.live_motion_detection,
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     Container(
@@ -264,13 +229,13 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          _currentActivity == 'Walking'
+                          _currentActivity == AppLocalizations.of(context)!.walking
                               ? const Icon(Icons.directions_walk,
                                   size: 100, color: Colors.blueAccent)
-                              : _currentActivity == 'Running'
+                              : _currentActivity == AppLocalizations.of(context)!.running
                                   ? const Icon(Icons.directions_run,
                                       size: 100, color: Colors.blueAccent)
-                                  : _currentActivity == 'Going Stairs'
+                                  : _currentActivity == AppLocalizations.of(context)!.stepping_stairs
                                       ? const Icon(Icons.stairs,
                                           size: 100, color: Colors.blueAccent)
                                       : const Icon(Icons.accessibility_new,
@@ -286,22 +251,15 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
             Center(
               child: ClipOval(
                 child: Material(
-                  color: _isLive
-                      ? Colors.red
-                      : Colors.green, // Màu thay đổi khi nhận dữ liệu
+                  color: _isLive ? Colors.red : Colors.green,
                   child: InkWell(
-                    onTap: _isLive
-                        ? _stopLiveDetection
-                        : _startLiveDetection, // Đổi chức năng dựa trên trạng thái
+                    onTap: _isLive ? _stopLiveDetection : _startLiveDetection,
                     child: SizedBox(
                       width: 70,
                       height: 70,
                       child: Center(
                         child: Icon(
-                          _isLive
-                              ? Icons.stop
-                              : Icons
-                                  .play_arrow, // Biểu tượng thay đổi khi nhận dữ liệu
+                          _isLive ? Icons.stop : Icons.play_arrow,
                           color: Colors.white,
                           size: 40,
                         ),

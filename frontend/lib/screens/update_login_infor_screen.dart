@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 class UpdateLoginInfoScreen extends StatefulWidget {
   const UpdateLoginInfoScreen({super.key});
 
@@ -15,9 +17,9 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Update Login Information',
-          style: TextStyle(fontSize: 20), // Adjust font size here
+        title: Text(
+          AppLocalizations.of(context)!.change_infor_login,
+          style: TextStyle(fontSize: 17), // Adjust font size here
         ),
       ),
       body: Padding(
@@ -28,8 +30,8 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
             children: [
               // Username
               TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Username',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.user_name,
                   prefixIcon: Icon(Icons.person), // User icon
                 ),
               ),
@@ -37,8 +39,8 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
 
               // Email
               TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.email,
                   prefixIcon: Icon(Icons.email), // Email icon
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -49,7 +51,7 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
               TextField(
                 obscureText: _obscureOldPassword,
                 decoration: InputDecoration(
-                  labelText: 'Old Password',
+                  labelText: AppLocalizations.of(context)!.old_password,
                   prefixIcon: const Icon(Icons.lock), // Password icon
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -71,7 +73,7 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
               TextField(
                 obscureText: _obscureNewPassword,
                 decoration: InputDecoration(
-                  labelText: 'New Password',
+                  labelText: AppLocalizations.of(context)!.new_password,
                   prefixIcon:
                       const Icon(Icons.lock_outline), // New password icon
                   suffixIcon: IconButton(
@@ -103,7 +105,7 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
                       backgroundColor:
                           Colors.red, // Red color for Cancel button
                     ),
-                    child: const Text('Cancel'),
+                    child: Text(AppLocalizations.of(context)!.cancel),
                   ),
 
                   // Update Button
@@ -115,7 +117,7 @@ class _UpdateLoginInfoScreenState extends State<UpdateLoginInfoScreen> {
                       backgroundColor:
                           Colors.blue, // Blue color for Update button
                     ),
-                    child: const Text('Update'),
+                    child: Text(AppLocalizations.of(context)!.update),
                   ),
                 ],
               ),
